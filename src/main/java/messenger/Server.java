@@ -1,4 +1,4 @@
-package src.main.java.Messenger;
+package messenger;
 
 import java.io.*;
 import java.net.*;  
