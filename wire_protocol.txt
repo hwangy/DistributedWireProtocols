@@ -6,8 +6,14 @@ Message {
 	4. String message
 }
 
+Status {
+	1. Boolean success
+	// if not successful
+	2. String message
+}
+
 Methods
-1. Message createUser(String username)
+1. Status createUser(String username)
 2. Array<String> getAccounts(optional String pattern)
-3. Message sendMessage(String username)
-4. Map<String, Array
+3. Status sendMessage(Message msg)
+4. Array<Message> getMessages()
