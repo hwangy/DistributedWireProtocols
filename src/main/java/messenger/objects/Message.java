@@ -1,4 +1,4 @@
-package src.main.java.Messenger.objects;
+package messenger.objects;
 
 public class Message {
     private final int timestamp;

@@ -1,5 +1,5 @@
-package src.main.java.Messenger;
-import src.main.java.Messenger.objects.*;
+package messenger;
+import messenger.objects.*;
 
 import java.io.*;
 import java.net.*;  

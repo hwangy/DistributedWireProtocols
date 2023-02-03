@@ -1,11 +1,33 @@
 apply plugin: 'java'
 
+repositories {
+    mavenCentral()
+}
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8+'
+    testImplementation "org.mockito:mockito-core:3.+"
+}
+
 task(runServer, dependsOn: 'classes', type: JavaExec) {
-    main = 'src.main.java.Messenger.Server'
+    main = 'messenger.Server'
     classpath = sourceSets.main.runtimeClasspath
 }
 
 task(runClient, dependsOn: 'classes', type: JavaExec) {
-    main = 'src.main.java.Messenger.Client'
+    main = 'messenger.Client'
     classpath = sourceSets.main.runtimeClasspath
+}
+
+test {
+    useJUnitPlatform()
+    beforeTest { descriptor ->
+        logger.lifecycle("test: " + descriptor + "  Running")
+    }
+
+    onOutput { descriptor, event ->
+        logger.lifecycle("test: " + descriptor + ": " + event.message )
+    }
+    afterTest { descriptor, result ->
+        logger.lifecycle("test: " + descriptor + ": " + result )
+    }
 }
