@@ -14,7 +14,6 @@ public class Status {
         this.error_message = error_message;
     }
 
-
     public static Status genSuccess() {
         Status status = Status(1, "");
         return status;
@@ -22,6 +21,14 @@ public class Status {
 
     public static Status genFailure() {
         Status status = Status(0, "Message was not delivered successfully.");
+    }
+
+    public static String displayMessage() {
+        return error_message;
+    }
+
+    public static String displayStatus() {
+        return success;
     }
 
 
