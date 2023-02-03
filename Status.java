@@ -5,8 +5,8 @@ public class Status {
 	private final String error_message;
 
     /** 
-    @param success Indicates whether or not a message was sent successfully
-    @param error_message Returns error message if message was not sent successfully
+    @param success Indicates whether or not an operation was performed successfully
+    @param error_message Returns error message if operation not performed successfully
     */
 
     public Status(Boolean success, String error_message) {
@@ -20,7 +20,7 @@ public class Status {
     }
 
     public static Status genFailure() {
-        Status status = Status(0, "Message was not delivered successfully.");
+        Status status = Status(0, "Operation was not performed successfully.");
     }
 
     public static String displayMessage() {
