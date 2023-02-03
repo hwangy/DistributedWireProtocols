@@ -1,0 +1,11 @@
+apply plugin: 'java'
+
+task(runServer, dependsOn: 'classes', type: JavaExec) {
+    main = 'src.main.java.Messenger.Server'
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+task(runClient, dependsOn: 'classes', type: JavaExec) {
+    main = 'src.main.java.Messenger.Client'
+    classpath = sourceSets.main.runtimeClasspath
+}

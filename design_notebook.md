@@ -4,6 +4,9 @@ The following tracks our design decisions for the wire protocols project.
 
 ### Design of Wire Protocol
 The two core objects are the Request and Response. 
+>**Decision** Currently, there are no internal objects representing the 
+> request and response. This can probably be created on-the-fly.
+
 #### Request
 The request specifies the method the client is calling, as well as any 
 arguments required by the method.

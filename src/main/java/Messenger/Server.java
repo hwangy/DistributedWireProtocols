@@ -5,7 +5,9 @@ import java.net.*;
 public class Server {
     public static void main(String[] args){
         try{
+            System.out.println("Starting server...");
             ServerSocket ss=new ServerSocket(6666);
+            System.out.println("Waiting for connection...");
             Socket s=ss.accept();//establishes connection
             DataInputStream dis=new DataInputStream(s.getInputStream());
             String  str=(String)dis.readUTF();
