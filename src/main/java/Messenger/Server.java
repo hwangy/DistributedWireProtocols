@@ -1,12 +1,14 @@
 package src.main.java.Messenger;
+import src.main.java.Messenger.objects.*;
 
 import java.io.*;
 import java.net.*;  
+import java.util.*;
 
 public class Server {
 
-    private Map<String, Array<Message>> sentMessages;
-    private Map<String, Array<Message>> queuedMessages;
+    private Map<String, ArrayList<Message>> sentMessages;
+    private Map<String, ArrayList<Message>> queuedMessages;
     private Set<String> loggedInUsers;
 
     public static void main(String[] args){
@@ -19,9 +21,10 @@ public class Server {
             String  str=(String)dis.readUTF();
             System.out.println("message= "+str);
             ss.close();
+
         }catch(Exception e) {
             System.out.println(e);
         }
     }
-    
+
 }  

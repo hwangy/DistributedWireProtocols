@@ -1,11 +1,13 @@
 package src.main.java.Messenger;
+import src.main.java.Messenger.objects.*;
 
 import java.io.*;
 import java.net.*;  
+import java.util.*;
 
 public class Client {  
 
-    private Map<String, Array<Message>> receivedMessages;
+    private Map<String, ArrayList<Message>> receivedMessages;
 
     public static void main(String[] args) {  
     try{      
@@ -18,5 +20,5 @@ public class Client {
         s.close();  
     }catch(Exception e){System.out.println(e);}  
     }  
-    
+
 }  
