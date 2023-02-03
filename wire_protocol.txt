@@ -1,3 +1,5 @@
+This document will track our methods.
+
 Data Structures
 Message {
 	1. int timestamp
