@@ -21,6 +21,9 @@ public class Status {
         return new Status(true, "");
     }
 
+    /** 
+    @param error_message The error message to be displayed
+     */
     public static Status genFailure(String error_message) {
         return new Status(false, error_message);
     }
