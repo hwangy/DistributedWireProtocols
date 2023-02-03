@@ -1,4 +1,6 @@
-Network Data Structures
+The following tracks our design decisions for the wire protocols project.
+
+We have decided to define two network data structures.
 Message {
 	1. int timestamp
 	// -1 if undelivered
