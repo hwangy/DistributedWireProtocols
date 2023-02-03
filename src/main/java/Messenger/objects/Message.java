@@ -1,3 +1,5 @@
+package src.main.java.Messenger.objects;
+
 public class Message {
     private final int timestamp;
     private int delivered_timestamp;
