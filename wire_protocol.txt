@@ -1,21 +1,33 @@
 This document will track our methods.
 
-Data Structures
+Network Data Structures
 Message {
 	1. int timestamp
-	2. String sender
-	3. String receiver
-	4. String message
+	// -1 if undelivered
+	2. int delivered_timestamp
+	3. String sender
+	4. String receiver
+	5. String message
 }
 
 Status {
 	1. Boolean success
 	// if not successful
-	2. String message
+	2. String error_message
 }
 
 Methods
 1. Status createUser(String username)
-2. Array<String> getAccounts(optional String pattern)
+// Do we need status for this?
+2. Array<String> getAccounts(optional String regex)
+// Surface whether delivered to sender?
 3. Status sendMessage(Message msg)
-4. Array<Message> getMessages()
+4. Array<Message> getUndeliveredMessages(String username)
+5. Status deleteAccount(String username)
+
+Client structures
+1. Map<String, Array<Message>> receivedMessages
+
+Server
+1. Map<String, Array<String>> sentMessages
+2. Map<String, Array<String>> queuedMessages
