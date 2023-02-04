@@ -183,6 +183,8 @@ Request {
 }
 ```
 
+The `MethodRequestInterface` and its implementation classes will contain a method `genGenericRequest` which takes in a String and returns a Request object.
+
 ### Response objects
 
 The same reasoning as for the Request object led us to modify the Response object to the following:
@@ -195,4 +197,10 @@ Response {
 	Else
 		(variable)string response
 }
-```
+``` 
+
+The `MethodResponseInterface` and its implementation classes will contain a method `genGenericResponse` which takes in a String and returns a Request object.
+
+## Storing messages on the Client side
+
+> **Decision** On February 3rd, we made the decision to keep a data structure on the Client side called `Map<String, Array<Message>> receivedMessages`. We are modifying this decision. Instead, once a message has been delivered to the Client from the Server, the Server deletes it and the Client does not store it. This is for simplicity of design and falls within the requirements of the project. Due to the modularity of our design, it would be possible to add in a data structure to store received messages later on, if we choose to.
