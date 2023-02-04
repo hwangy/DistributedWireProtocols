@@ -52,6 +52,17 @@ public class Server {
 
             while(true) {
                 System.out.println(options);
+
+                /*
+                1. Read input as a string
+                2. Convert string input into a Request
+                3. Depending on first field of Request, enter appropriate IF statement
+                IF:
+                    4. request = [method]Request.parseGenericRequest(request);
+                    5. [Method]Response = [method](request)
+                6. String rawResponse = encResponse([Method]Response.getGenericResponse());
+                7. sendToClient(rawResponse)
+                 */
                 break;
             }
 
