@@ -165,7 +165,9 @@ In the `while(true)` loop of the Server, we choose to include the following.
 
 ## Request and response objects
 
-We have also made the decision to create interfaces and implementation classes that allow both the Client and Server to encode and decode the Request and Response objects. For example, for the Client to send a request to the Server, it first will want to encode its request as a Request object, then convert it to a String to be sent across the network to the Server. The Server will then encode this String back into a Request object. This ensures that the Server can properly determine the components of the message being sent. The same concept applies for the Response object.
+> **Decision** We have also made the decision to create interfaces and implementation classes that allow both the Client and Server to encode and decode the Request and Response objects.
+
+For example, for the Client to send a request to the Server, it first will want to encode its request as a Request object, then convert it to a String to be sent across the network to the Server. The Server will then encode this String back into a Request object. This ensures that the Server can properly determine the components of the message being sent. The same concept applies for the Response object.
 
 We have created the interfaces `MethodRequestInterface` and `MethodResponseInterface`. Implementation classes will be created for each of these interfaces corresponding to each of the five method options.
 
