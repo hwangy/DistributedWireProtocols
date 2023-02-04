@@ -31,6 +31,7 @@ public class Client {
                 8. Take some action based on the server's response
                     (e.g. adding messages to hashmap, telling user there was a failure)
              */
+            break;
         }
         dout.flush();  
         dout.close();  
