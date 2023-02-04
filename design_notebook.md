@@ -129,3 +129,40 @@ Idea:
 >**Decision** When a user is created, it will be added to both `allUsers`
 > as well as `loggedInUsers`. As a consequence of this decision, create
 > `allUsers` Set for the server.
+
+## Design of Client and Server protocols
+
+Today, we discussed the specifics of the Client and Server protocols. Our goal was to create a design that is both modular and easily testable. We also kept in consideration the fact that we will be altering the application we build using gRPC for Part 2, which further necessitates that we create a modular design.
+
+### Client
+
+In the `while(true)` loop of the Client, we choose to include the following.
+1. Ask for choice of method
+2. Get arguments for method
+3. Create an IF statement for each method (from 1 to 5). Inside each IF statement:
+
+	4. `[Method]Request req = gen[Method]Request(String arguments...)`
+	5. `String rawRequest = encodeRequest(req.getGenericRequest());`
+	6. `sendToServer(rawRequest());`
+	7. `String response = getFromServer();`
+	8. `[Method]Response response = [Method]Response.parseResponse(Response.fromString(response));`
+	9. Take some action based on the server's response
+		(e.g. adding messages to hashmap, telling user there was a failure)
+
+
+### Server
+In the `while(true)` loop of the Server, we choose to include the following.
+
+1. Read input as a string
+2. Convert string input into a `Request`
+3. Depending on first field of `Request`, enter appropriate IF statement
+4. Create an IF statement for each method (from 1 to 5). Inside each IF statement:
+
+	5. `request = [method]Request.parseGenericRequest(request);`
+	6. `[Method]Response = [method](request)`
+	7. `String rawResponse = encResponse([Method]Response.getGenericResponse());`
+	8. `sendToClient(rawResponse)`
+
+## Request and response objects
+
+We have also made the decision
