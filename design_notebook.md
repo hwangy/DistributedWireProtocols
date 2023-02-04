@@ -1,6 +1,6 @@
 The following tracks our design decisions for the wire protocols project.
 
-## February 3rd
+# February 3rd
 
 ### Design of Wire Protocol
 The two core objects are the Request and Response. 
@@ -168,3 +168,31 @@ In the `while(true)` loop of the Server, we choose to include the following.
 We have also made the decision to create interfaces and implementation classes that allow both the Client and Server to encode and decode the Request and Response objects. For example, for the Client to send a request to the Server, it first will want to encode its request as a Request object, then convert it to a String to be sent across the network to the Server. The Server will then encode this String back into a Request object. This ensures that the Server can properly determine the components of the message being sent. The same concept applies for the Response object.
 
 We have created the interfaces `MethodRequestInterface` and `MethodResponseInterface`. Implementation classes will be created for each of these interfaces corresponding to each of the five method options.
+
+We have also made changes to the Request and Response objects initially described in the February 3rd section.
+
+### Request objects
+
+We have made the design decision to modify the Request object to remove the `(4)int first argument length` component. The reason is that the UTF methods handle reading the length of the String. When one writes a UTF (`writeUTF`), Java encodes the length of the String being sent in the first two bytes, then sends the rest of the string. When one reads a UTF (`readsUTF`), the length is first read and then the rest of the String is read. Therefore, we can remove the argument length component of Request:
+
+```
+Request {
+    (4)int method,
+    (variable)string first argument,
+    ...
+}
+```
+
+### Response objects
+
+The same reasoning as for the Request object led us to modify the Response object to the following:
+
+```
+Response {
+	(4)int success,
+	If success = 0
+		(variable)string error message
+	Else
+		(variable)string response
+}
+```
