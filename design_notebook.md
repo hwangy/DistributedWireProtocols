@@ -124,3 +124,8 @@ Messages will be delivered when the corresponding user next logs in.
 Idea:
 - The server creates a new thread for each connection and maintains a list
   of logged in users.
+
+# February 4th
+>**Decision** When a user is created, it will be added to both `allUsers`
+> as well as `loggedInUsers`. As a consequence of this decision, create
+> `allUsers` Set for the server.

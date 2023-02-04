@@ -10,8 +10,33 @@ public class Server {
     private Map<String, ArrayList<Message>> sentMessages;
     private Map<String, ArrayList<Message>> queuedMessages;
     private Set<String> loggedInUsers;
+    private Set<String> allUsers;
 
+    private void initializeObjects() {
+        sentMessages = new HashMap<>();
+        queuedMessages = new HashMap<>();
+        loggedInUsers = new HashSet<>();
+        allUsers = new HashSet<>();
+    }
+
+    /**
+     * Creates a user with a given username. If the user exists,
+     * returns an unsuccessful Status object. Otherwise, the user
+     * is added to ``allUsers`` as well as ``loggedInUsers``.
+     *
+     * @param username  Username of new user.
+     * @return          A status object indicating whether the operation
+     *                  succeeded or failed.
+     */
+    private Status createUser(String username) {
+        if (allUsers.contains(username)) {
+            return Status.genFailure("User " + username + " already exists.");
+        }
+        this.allUsers.add(username);
+        return Status.genSuccess();
+    }
     public static void main(String[] args){
+
         try{
             System.out.println("Starting server...");
             ServerSocket ss=new ServerSocket(6666);
