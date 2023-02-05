@@ -1,5 +1,6 @@
 package messenger;
 import messenger.objects.*;
+import messenger.objects.request.Request;
 
 import java.io.*;
 import java.net.*;  
@@ -7,17 +8,10 @@ import java.util.*;
 
 public class Server {
 
-    private Map<String, ArrayList<Message>> sentMessages;
-    private Map<String, ArrayList<Message>> queuedMessages;
-    private Set<String> loggedInUsers;
-    private Set<String> allUsers;
-
-    private void initializeObjects() {
-        sentMessages = new HashMap<>();
-        queuedMessages = new HashMap<>();
-        loggedInUsers = new HashSet<>();
-        allUsers = new HashSet<>();
-    }
+    private Map<String, ArrayList<Message>> sentMessages = new HashMap<>();
+    private Map<String, ArrayList<Message>> queuedMessages = new HashMap<>();
+    private Set<String> loggedInUsers = new HashSet<>();
+    private Set<String> allUsers = new HashSet<>();
 
     /**
      * Creates a user with a given username. If the user exists,
@@ -35,8 +29,15 @@ public class Server {
         this.allUsers.add(username);
         return Status.genSuccess();
     }
-    public static void main(String[] args){
 
+    private Request parseRequestString(DataInputStream stream) throws IOException {
+        // Read method identifier
+        int method = stream.readInt();
+        while (stream.available() > 0) {
+            stream.readUTF();
+        }
+    }
+    public static void main(String[] args){
         try{
             System.out.println("Starting server...");
             ServerSocket ss=new ServerSocket(6666);
@@ -67,6 +68,7 @@ public class Server {
             }
 
             DataInputStream dis=new DataInputStream(s.getInputStream());
+            dis.
             String  str=(String)dis.readUTF();
             System.out.println("message= "+str);
             ss.close();

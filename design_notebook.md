@@ -141,12 +141,12 @@ In the `while(true)` loop of the Client, we choose to include the following.
 2. Get arguments for method
 3. Create an IF statement for each method (from 1 to 5). Inside each IF statement:
 
-	4. `[Method]Request req = gen[Method]Request(String arguments...)`
-	5. `String rawRequest = encodeRequest(req.getGenericRequest());`
-	6. `sendToServer(rawRequest());`
-	7. `String response = getFromServer();`
-	8. `[Method]Response response = [Method]Response.parseResponse(Response.fromString(response));`
-	9. Take some action based on the server's response
+	1. ethod]Request req = gen[Method]Request(String arguments...)`
+	2. `String rawRequest = encodeRequest(req.getGenericRequest());`
+	3. `sendToServer(rawRequest());`
+	4. `String response = getFromServer();`
+	5. `[Method]Response response = [Method]Response.parseResponse(Response.fromString(response));`
+	6. Take some action based on the server's response
 		(e.g. adding messages to hashmap, telling user there was a failure)
 
 
@@ -158,10 +158,10 @@ In the `while(true)` loop of the Server, we choose to include the following.
 3. Depending on first field of `Request`, enter appropriate IF statement
 4. Create an IF statement for each method (from 1 to 5). Inside each IF statement:
 
-	5. `request = [method]Request.parseGenericRequest(request);`
-	6. `[Method]Response = [method](request)`
-	7. `String rawResponse = encResponse([Method]Response.getGenericResponse());`
-	8. `sendToClient(rawResponse)`
+    1. `request = [method]Request.parseGenericRequest(request);`
+    2. `[Method]Response = [method](request)`
+    3. `String rawResponse = encResponse([Method]Response.getGenericResponse());`
+    4. `sendToClient(rawResponse)`
 
 ## Request and response objects
 

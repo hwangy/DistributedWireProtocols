@@ -1,5 +1,7 @@
 package messenger.objects.request;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.List;
 
 public class Request {
@@ -11,10 +13,13 @@ public class Request {
         this.arguments = arguments;
     }
 
-    public String toString() {
+    public void writeToStream(DataOutputStream io) throws IOException {
         /*
          To implement
          */
-        return "";
+        io.writeInt(method);
+        for (String argument : arguments) {
+            io.writeUTF(argument);
+        }
     }
 }

@@ -1,5 +1,7 @@
 package messenger;
 import messenger.objects.*;
+import messenger.objects.helper.API;
+import messenger.objects.request.CreateUserRequest;
 
 import java.io.*;
 import java.net.*;  
@@ -18,6 +20,7 @@ public class Client {
         DataOutputStream dout=new DataOutputStream(s.getOutputStream());
         dout.writeUTF("Hello Server");
 
+        int choice = -1;
         while (true) {
             /*
             1. Ask for choice of method
@@ -31,6 +34,17 @@ public class Client {
                 8. Take some action based on the server's response
                     (e.g. adding messages to hashmap, telling user there was a failure)
              */
+            API method = API.fromInt(choice);
+            if (method == API.CREATE_USER) {
+                /*
+                Ask user for argument
+                 */
+                String username = "test";
+                CreateUserRequest request = new CreateUserRequest(username);
+                request.genGenericRequest().writeToStream(dout);
+                // Wait for response
+                //TODO: I guess we'll need two threads, one for sending and another for receiving
+            }
             break;
         }
         dout.flush();  
