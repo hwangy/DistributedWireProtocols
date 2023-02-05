@@ -132,7 +132,9 @@ Idea:
 
 ## Design of Client and Server protocols
 
-Today, we discussed the specifics of the Client and Server protocols. Our goal was to create a design that is both modular and easily testable. We also kept in consideration the fact that we will be altering the application we build using gRPC for Part 2, which further necessitates that we create a modular design.
+Today, we discussed the specifics of the Client and Server protocols. Our goal was to create a design that is
+both modular and easily testable. We also kept in consideration the fact that we will be altering the application we 
+build using gRPC for Part 2, which further necessitates that we create a modular design.
 
 ### Client
 
@@ -165,17 +167,26 @@ In the `while(true)` loop of the Server, we choose to include the following.
 
 ## Request and response objects
 
-> **Decision** We have also made the decision to create interfaces and implementation classes that allow both the Client and Server to encode and decode the Request and Response objects.
+> **Decision** We have also made the decision to create interfaces and implementation classes that allow both the Client
+> and Server to encode and decode the Request and Response objects.
 
-For example, for the Client to send a request to the Server, it first will want to encode its request as a Request object, then convert it to a String to be sent across the network to the Server. The Server will then encode this String back into a Request object. This ensures that the Server can properly determine the components of the message being sent. The same concept applies for the Response object.
+For example, for the Client to send a request to the Server, it first will want to encode its request as a Request 
+object, then convert it to a String to be sent across the network to the Server. The Server will then encode this String
+back into a Request object. This ensures that the Server can properly determine the components of the message being 
+sent. The same concept applies for the Response object.
 
-We have created the interfaces `MethodRequestInterface` and `MethodResponseInterface`. Implementation classes will be created for each of these interfaces corresponding to each of the five method options.
+We have created the interfaces `MethodRequestInterface` and `MethodResponseInterface`. Implementation classes will be 
+created for each of these interfaces corresponding to each of the five method options.
 
 We have also made changes to the Request and Response objects initially described in the February 3rd section.
 
 ### Request objects
 
-We have made the design decision to modify the Request object to remove the `(4)int first argument length` component. The reason is that the UTF methods handle reading the length of the String. When one writes a UTF (`writeUTF`), Java encodes the length of the String being sent in the first two bytes, then sends the rest of the string. When one reads a UTF (`readsUTF`), the length is first read and then the rest of the String is read. Therefore, we can remove the argument length component of Request:
+We have made the design decision to modify the Request object to remove the `(4)int first argument length` component. 
+The reason is that the UTF methods handle reading the length of the String. When one writes a UTF (`writeUTF`), Java 
+encodes the length of the String being sent in the first two bytes, then sends the rest of the string. When one reads a
+UTF (`readsUTF`), the length is first read and then the rest of the String is read. Therefore, we can remove the 
+argument length component of Request:
 
 ```
 Request {
@@ -185,7 +196,8 @@ Request {
 }
 ```
 
-The `MethodRequestInterface` and its implementation classes will contain a method `genGenericRequest` which takes in a String and returns a Request object.
+The `MethodRequestInterface` and its implementation classes will contain a method `genGenericRequest` which takes in a
+String and returns a Request object.
 
 ### Response objects
 
@@ -201,8 +213,18 @@ Response {
 }
 ``` 
 
-The `MethodResponseInterface` and its implementation classes will contain a method `genGenericResponse` which takes in a String and returns a Request object.
+The `MethodResponseInterface` and its implementation classes will contain a method `genGenericResponse` which takes in a
+String and returns a Request object.
 
 ## Storing messages on the Client side
 
-> **Decision** On February 3rd, we made the decision to keep a data structure on the Client side called `Map<String, Array<Message>> receivedMessages`. We are modifying this decision. Instead, once a message has been delivered to the Client from the Server, the Server deletes it and the Client does not store it. This is for simplicity of design and falls within the requirements of the project. Due to the modularity of our design, it would be possible to add in a data structure to store received messages later on, if we choose to.
+> **Decision** On February 3rd, we made the decision to keep a data structure on the Client side called `Map<String, 
+> Array<Message>> receivedMessages`. We are modifying this decision. Instead, once a message has been delivered to the 
+> Client from the Server, the Server deletes it and the Client does not store it. This is for simplicity of design and 
+> falls within the requirements of the project. Due to the modularity of our design, it would be possible to add in a 
+> data structure to store received messages later on, if we choose to.
+
+# February 5th
+
+> **Decision** The non-network components of the Server class have been refactored out to a separate class
+> `serverCore` to allow for more modular design and easier testing of server functionality.

@@ -25,7 +25,11 @@ public enum API {
         this.identifier = identifier;
     }
 
-    public static API fromInt(int identifier) {
+    public static API fromInt(int identifier) throws APIException {
+        if (!intToAPI.containsKey(identifier)) {
+            throw new APIException("Identifier " + identifier + " does not correspond" +
+                    " to a valid API call.");
+        }
         return intToAPI.get(identifier);
     }
 

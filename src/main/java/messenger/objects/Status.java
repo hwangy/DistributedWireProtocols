@@ -28,11 +28,11 @@ public class Status {
         return new Status(false, error_message);
     }
 
-    public String displayMessage() {
+    public String getMessage() {
         return this.error_message;
     }
 
-    public Boolean displayStatus() {
+    public Boolean isSuccess() {
         return this.success;
     }
 

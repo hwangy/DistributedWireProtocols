@@ -3,7 +3,7 @@ package messenger;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-class ClientUnitTests {
+class ClientTest {
     @Test
     void testList(){
         System.out.println("This test method should be run");
