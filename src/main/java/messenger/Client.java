@@ -48,7 +48,22 @@ public class Client {
              */
 
             System.out.println(options);
-            /*choice = input_reader.nextInt();
+
+            // Note: This doesn't work yet! I can't get the Client to wait for the Scanner before proceeding.
+            try{
+                while(input_reader.hasNextInt()){
+                    System.out.println("In scanner component");
+                    String line = input_reader.nextLine();
+                    System.out.println(line);
+                    //break;
+                }
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+
+            
+            /*
+            choice = input_reader.nextInt();
             if (choice < 1|| choice > 6) {
                 // throw an exception
             }*/
@@ -89,6 +104,7 @@ public class Client {
                 System.out.println("Test delete account");
                 DeleteAccountRequest request = new DeleteAccountRequest(username);
                 client.sendRequest(request.genGenericRequest());
+                // Wait for response and handle response
             }
 
             break;
