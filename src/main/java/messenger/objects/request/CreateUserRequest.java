@@ -17,7 +17,7 @@ public class CreateUserRequest implements MethodRequestInterface {
     public CreateUserRequest(Request request) throws APIException {
         List<String> args = request.getArguments();
         if (args.size() != 1) {
-            throw new APIException("createUserRequest expects 1 argument, got " + args.size());
+            throw new APIException("CreateUserRequest expects 1 argument, got " + args.size());
         } else {
             this.username = args.get(0);
         }
