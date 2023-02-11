@@ -228,3 +228,6 @@ String and returns a Request object.
 
 > **Decision** The non-network components of the Server class have been refactored out to a separate class
 > `serverCore` to allow for more modular design and easier testing of server functionality.
+
+# February 11
+> **Decision** We've integrated the Mockito and JUnit testing frameworks using Maven to help with unit testing.

@@ -2,13 +2,12 @@ package messenger;
 import messenger.objects.*;
 import messenger.objects.helper.API;
 import messenger.objects.helper.APIException;
-import messenger.objects.request.CreateUserRequest;
+import messenger.objects.request.CreateAccountRequest;
+import messenger.objects.request.DeleteAccountRequest;
 import messenger.objects.request.Request;
 
-import javax.xml.crypto.Data;
 import java.io.*;
 import java.net.*;
-import java.sql.Array;
 import java.util.*;
 
 /**
@@ -95,10 +94,14 @@ public class Server {
                         // Parse integer into the corresponding API call
                         System.out.println(request.getMethodId());
                         API calledMethod = API.fromInt(request.getMethodId());
-                        if (calledMethod == API.CREATE_USER) {
+                        if (calledMethod == API.CREATE_ACCOUNT) {
                             // Client wants to create a new user
-                            CreateUserRequest createUserRequest = new CreateUserRequest(request);
-                            Status status = server.createUser(createUserRequest);
+                            CreateAccountRequest createAccountRequest = new CreateAccountRequest(request);
+                            Status status = server.createAccount(createAccountRequest);
+                            System.out.println(status.getMessage());
+                        } else if (calledMethod == API.DELETE_ACCOUNT) {
+                            DeleteAccountRequest deleteAccountRequest = new DeleteAccountRequest(request);
+                            Status status = server.deleteAccount(deleteAccountRequest);
                             System.out.println(status.getMessage());
                         }
                     } catch (EOFException e) {

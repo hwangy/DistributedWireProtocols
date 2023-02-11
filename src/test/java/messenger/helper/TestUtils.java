@@ -2,7 +2,8 @@ package messenger.helper;
 
 import messenger.objects.helper.API;
 import messenger.objects.helper.APIException;
-import messenger.objects.request.CreateUserRequest;
+import messenger.objects.request.CreateAccountRequest;
+import messenger.objects.request.DeleteAccountRequest;
 import messenger.objects.request.Request;
 
 import java.util.Arrays;
@@ -18,11 +19,27 @@ public class TestUtils {
      * @param username  Username for the request
      * @return          a createUserRequest
      */
-    public static CreateUserRequest testCreateUserRequest(String username) {
+    public static CreateAccountRequest testCreateUserRequest(String username) {
         try {
-            Request request = new Request(API.CREATE_USER.getIdentifier(),
+            Request request = new Request(API.CREATE_ACCOUNT.getIdentifier(),
                     Arrays.asList(username));
-            return new CreateUserRequest(request);
+            return new CreateAccountRequest(request);
+        } catch (APIException ex) {
+            // This should never happen
+            return null;
+        }
+    }
+
+    /**
+     * Create a simple DeleteUserRequest
+     * @param username  Username for the request
+     * @return          a deleteUserRequest
+     */
+    public static DeleteAccountRequest testDeleteUserRequest(String username) {
+        try {
+            Request request = new Request(API.DELETE_ACCOUNT.getIdentifier(),
+                    Arrays.asList(username));
+            return new DeleteAccountRequest(request);
         } catch (APIException ex) {
             // This should never happen
             return null;

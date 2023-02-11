@@ -1,7 +1,7 @@
 package messenger;
 import messenger.objects.*;
 import messenger.objects.helper.API;
-import messenger.objects.request.CreateUserRequest;
+import messenger.objects.request.CreateAccountRequest;
 
 import java.io.*;
 import java.net.*;  
@@ -46,13 +46,13 @@ public class Client {
              */
             choice = 1;
             API method = API.fromInt(choice);
-            if (method == API.CREATE_USER) {
+            if (method == API.CREATE_ACCOUNT) {
                 /*
                 Ask user for argument
                  */
                 String username = "test";
                 System.out.println("TEST");
-                CreateUserRequest request = new CreateUserRequest(username);
+                CreateAccountRequest request = new CreateAccountRequest(username);
                 client.sendRequest(request.genGenericRequest());
                 // Wait for response
                 //TODO: I guess we'll need two threads, one for sending and another for receiving

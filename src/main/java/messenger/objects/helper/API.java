@@ -7,7 +7,7 @@ import java.util.Map;
  * An enum for valid API calls.
  */
 public enum API {
-    CREATE_USER(1),
+    CREATE_ACCOUNT(1),
     GET_ACCOUNTS(2),
     SEND_MESSAGE(3),
     GET_UNDELIVERED_MESSAGES(4),
