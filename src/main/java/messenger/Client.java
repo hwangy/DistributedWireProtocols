@@ -1,7 +1,7 @@
 package messenger;
 import messenger.objects.*;
 import messenger.objects.helper.API;
-import messenger.objects.request.CreateAccountRequest;
+import messenger.objects.request.*;
 
 import java.io.*;
 import java.net.*;  
@@ -30,6 +30,8 @@ public class Client {
                 "5. Delete an account. If you attempt to delete an account that contains undelivered message, (ADD HERE)";
 
 
+        Scanner input_reader = new Scanner(System.in); 
+
         int choice = -1;
         while (true) {
             /*
@@ -44,19 +46,67 @@ public class Client {
                 8. Take some action based on the server's response
                     (e.g. adding messages to hashmap, telling user there was a failure)
              */
-            choice = 1;
+
+            System.out.println(options);
+
+            // Note: This doesn't work yet! I can't get the Client to wait for the Scanner before proceeding.
+            try{
+                while(input_reader.hasNextInt()){
+                    System.out.println("In scanner component");
+                    String line = input_reader.nextLine();
+                    System.out.println(line);
+                    //break;
+                }
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+
+            
+            /*
+            choice = input_reader.nextInt();
+            if (choice < 1|| choice > 6) {
+                // throw an exception
+            }*/
+
+            choice = 5;
             API method = API.fromInt(choice);
             if (method == API.CREATE_ACCOUNT) {
                 /*
                 Ask user for argument
                  */
                 String username = "test";
-                System.out.println("TEST");
+                System.out.println("Test create user");
                 CreateAccountRequest request = new CreateAccountRequest(username);
                 client.sendRequest(request.genGenericRequest());
                 // Wait for response
                 //TODO: I guess we'll need two threads, one for sending and another for receiving
+            } else if (method == API.GET_ACCOUNTS){
+                String text_wildcard = "test";
+                System.out.println("Test get accounts");
+                GetAccountsRequest request = new GetAccountsRequest(text_wildcard);
+                client.sendRequest(request.genGenericRequest());
+                // Wait for response and handle response
+            } else if (method == API.SEND_MESSAGE) {
+                String recipient = "test";
+                System.out.println("Test send message");
+                SendMessageRequest request = new SendMessageRequest(recipient);
+                client.sendRequest(request.genGenericRequest());
+                // Wait for response and handle response
+            } else if (method == API.GET_UNDELIVERED_MESSAGES){
+                String username = "test";
+                System.out.println("Test get undelivered messages");
+                GetUndeliveredMessagesRequest request = new GetUndeliveredMessagesRequest(username);
+                client.sendRequest(request.genGenericRequest());
+                // Wait for response and handle response
+            } else if (method ==API.DELETE_ACCOUNT) {
+                // Question: If the user is logged in, do we want to ask for username?
+                String username = "test";
+                System.out.println("Test delete account");
+                DeleteAccountRequest request = new DeleteAccountRequest(username);
+                client.sendRequest(request.genGenericRequest());
+                // Wait for response and handle response
             }
+
             break;
         }
         client.closeConnections();
