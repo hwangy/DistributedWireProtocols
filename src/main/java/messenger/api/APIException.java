@@ -1,4 +1,4 @@
-package messenger.objects.helper;
+package messenger.api;
 
 public class APIException extends Exception {
     public APIException(String errMessage) {

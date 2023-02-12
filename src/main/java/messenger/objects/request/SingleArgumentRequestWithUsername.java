@@ -1,6 +1,6 @@
 package messenger.objects.request;
 
-import messenger.objects.helper.APIException;
+import messenger.api.APIException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,7 +23,7 @@ public abstract class SingleArgumentRequestWithUsername implements MethodRequest
 
     @Override
     public Request genGenericRequest() {
-        return new Request(getIdentifier(), Arrays.asList(new String[]{username}));
+        return new Request(getIdentifier(), Arrays.asList(username));
     }
 
     public String getUsername() {

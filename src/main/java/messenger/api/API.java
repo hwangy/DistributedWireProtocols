@@ -1,4 +1,4 @@
-package messenger.objects.helper;
+package messenger.api;
 
 import java.util.HashMap;
 import java.util.Map;

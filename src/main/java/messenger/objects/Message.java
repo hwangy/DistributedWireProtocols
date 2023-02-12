@@ -1,8 +1,11 @@
 package messenger.objects;
 
-public class Message {
-    private final int timestamp;
-    private int delivered_timestamp;
+import java.util.Arrays;
+import java.util.List;
+
+public class Message extends Object {
+    private final Integer timestamp;
+    private Integer delivered_timestamp;
     private final String sender;
     private final String receiver;
     private final String message;
@@ -33,5 +36,12 @@ public class Message {
      */
     public void setDeliveredTimestamp(int delivered_timestamp) {
         this.delivered_timestamp = delivered_timestamp;
+    }
+
+    public List<String> asStringList() {
+        return Arrays.asList(
+                timestamp.toString(),
+                delivered_timestamp.toString(),
+                sender, receiver, message);
     }
 }

@@ -231,3 +231,13 @@ String and returns a Request object.
 
 # February 11
 > **Decision** We've integrated the Mockito and JUnit testing frameworks using Maven to help with unit testing.
+
+While implementing the API, we realized that when reading the response from the server, we'll need to support receiving
+multiple responses, e.g. a list of strings which encode a list of messages. Similarly, we should encode the number of
+arguments to be sent to the server rather than just sending some number of arguments.
+
+This is important because the connection between the server and client is *persistent*; therefore, there's no way for
+server to know how many arguments it'll be receiving without being told.
+
+> **Decision** Add to the wire protocol support for receiving a variable number of responses and requests, by first
+> sending the number of strings to be sent, followed by a corresponding number of strings.

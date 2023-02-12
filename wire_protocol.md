@@ -5,6 +5,7 @@ arguments required by the method.
 ```
 Request {
     (4)int method,
+    (4)int number of arguments,
     [optional] UTF first argument:
         (2)int first argument length,
         (variable)string first argument,
@@ -24,11 +25,14 @@ length parameter in the protocol.
 ```
 Response {
 	(4)int success,
+	(4)int number of responses,
 	If success = 0
 	    UTF error message:
 	        (2)int length of error message,
 	        (variable)string error message
 	Else
-	    UTF response
+	    [optional] UTF first response,
+	    [optional] UTF second response,
+	    ...
 }
 ```

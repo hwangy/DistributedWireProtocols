@@ -1,9 +1,10 @@
 package messenger.helper;
 
-import messenger.objects.helper.API;
-import messenger.objects.helper.APIException;
+import messenger.api.API;
+import messenger.api.APIException;
 import messenger.objects.request.CreateAccountRequest;
 import messenger.objects.request.DeleteAccountRequest;
+import messenger.objects.request.GetAccountsRequest;
 import messenger.objects.request.Request;
 
 import java.util.Arrays;
@@ -44,5 +45,9 @@ public class TestUtils {
             // This should never happen
             return null;
         }
+    }
+
+    public static GetAccountsRequest testGetAllAccountsRequest() {
+        return new GetAccountsRequest();
     }
 }

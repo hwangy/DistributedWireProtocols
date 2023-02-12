@@ -1,14 +1,13 @@
 package messenger;
-import messenger.objects.*;
-import messenger.objects.helper.API;
-import messenger.objects.helper.APIException;
-import messenger.objects.request.CreateAccountRequest;
-import messenger.objects.request.DeleteAccountRequest;
-import messenger.objects.request.Request;
+import messenger.network.Connection;
+import messenger.api.API;
+import messenger.api.APIException;
+import messenger.objects.request.*;
+import messenger.objects.response.MethodResponseInterface;
+import messenger.util.Logging;
 
 import java.io.*;
 import java.net.*;
-import java.util.*;
 
 /**
  * Multithreaded server implementation, loosely based on
@@ -22,15 +21,16 @@ public class Server {
         ServerCore server = new ServerCore();
         ServerSocket serverSocket = null;
         try {
-            System.out.println("Starting server...");
+            Logging.logInfo("Starting server...");
             serverSocket=new ServerSocket(6666);
             serverSocket.setReuseAddress(true);
-            System.out.println("Waiting for connection...");
+            Logging.logInfo("Waiting for connection...");
 
             while(true) {
                 Socket s=serverSocket.accept();//establishes connection
-                System.out.println("New connection established " + s.getInetAddress().getHostAddress());
+                Logging.logInfo("New connection established " + s.getInetAddress().getHostAddress());
                 ClientHandler clientHandler = new ClientHandler(s, server);
+                clientHandler.init();
                 new Thread(clientHandler).start();
             }
         } catch(Exception e) {
@@ -46,10 +46,11 @@ public class Server {
         }
     }
 
-    private static class ClientHandler implements Runnable {
+    public static class ClientHandler implements Runnable {
         private final Socket clientSocket;
         private final ServerCore server;
 
+        private Connection connection;
         // Constructor
         public ClientHandler(Socket socket, ServerCore server)
         {
@@ -57,24 +58,12 @@ public class Server {
             this.server = server;
         }
 
-        private Request parseRequestString(DataInputStream stream) throws IOException {
-            // Read method identifier
-            List<String> args = new ArrayList<>();
-            int method = stream.readInt();
-            // All methods currently expect one argument
-            args.add(stream.readUTF());
-            return new Request(method, args);
+        public void init() throws IOException {
+            this.connection = new Connection(clientSocket);
         }
 
         public void run() {
-            DataOutputStream out = null;
-            DataInputStream in = null;
             try {
-                // get the outputstream of client
-                out = new DataOutputStream(clientSocket.getOutputStream());
-                // get the inputstream of client
-                in = new DataInputStream(clientSocket.getInputStream());
-  
                 while (true) {
                     /*
                     1. Read input as a string
@@ -88,45 +77,47 @@ public class Server {
                     */
 
                     try {
-                        // Form request
-                        Request request = parseRequestString(in);
+                        // Form request from input stream
+                        Request request = Request.genRequest(connection);
+                        // Response object to populate.
+                        MethodResponseInterface response = null;
 
                         // Parse integer into the corresponding API call
-                        System.out.println(request.getMethodId());
                         API calledMethod = API.fromInt(request.getMethodId());
+                        Logging.logInfo("Processing API call " + calledMethod.toString());
                         if (calledMethod == API.CREATE_ACCOUNT) {
                             // Client wants to create a new user
                             CreateAccountRequest createAccountRequest = new CreateAccountRequest(request);
-                            Status status = server.createAccount(createAccountRequest);
-                            System.out.println(status.getMessage());
+                            response = server.createAccountAPI(createAccountRequest);
                         } else if (calledMethod == API.DELETE_ACCOUNT) {
                             DeleteAccountRequest deleteAccountRequest = new DeleteAccountRequest(request);
-                            Status status = server.deleteAccount(deleteAccountRequest);
-                            System.out.println(status.getMessage());
+                            response = server.deleteAccountAPI(deleteAccountRequest);
+                        } else if (calledMethod == API.GET_ACCOUNTS) {
+                            GetAccountsRequest getAccountsRequest = new GetAccountsRequest(request);
+                            response = server.getAccountsAPI(getAccountsRequest);
+                        } else if (calledMethod == API.GET_UNDELIVERED_MESSAGES) {
+                            GetUndeliveredMessagesRequest getUndeliveredMessagesRequest =
+                                    new GetUndeliveredMessagesRequest(request);
+                            response = server.getUndeliveredMessagesAPI(getUndeliveredMessagesRequest);
+                        }
+                        if (response != null) {
+                            Logging.logService(response.getStringStatus());
+                            Logging.logInfo("Sending response to client");
+                            response.genGenericResponse().writeToStream(connection);
                         }
                     } catch (EOFException e) {
-                        System.out.println("Connection closed");
+                        Logging.logInfo("Connection closed");
                         break;
                     } catch (APIException e) {
                         e.printStackTrace();
-                        //out.writeUTF(e.toString());
-                        continue;
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-            }
-            finally {
+            } finally {
                 try {
-                    if (out != null) {
-                        out.close();
-                    }
-                    if (in != null) {
-                        in.close();
-                        clientSocket.close();
-                    }
-                }
-                catch (IOException e) {
+                    connection.close();
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }

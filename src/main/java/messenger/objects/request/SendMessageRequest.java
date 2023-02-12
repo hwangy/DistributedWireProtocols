@@ -1,9 +1,8 @@
 package messenger.objects.request;
 
-import messenger.objects.helper.API;
-import messenger.objects.helper.APIException;
+import messenger.api.API;
+import messenger.api.APIException;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 

@@ -1,7 +1,7 @@
 package messenger.objects.request;
 
-import messenger.objects.helper.API;
-import messenger.objects.helper.APIException;
+import messenger.api.API;
+import messenger.api.APIException;
 
 public class CreateAccountRequest extends SingleArgumentRequestWithUsername {
     public CreateAccountRequest(String username) {
