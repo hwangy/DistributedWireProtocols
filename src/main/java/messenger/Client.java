@@ -6,8 +6,7 @@ import messenger.objects.request.*;
 import messenger.objects.response.Response;
 import messenger.util.Logging;
 
-import java.io.*;
-import java.net.*;  
+import java.net.*;
 import java.util.*;
 
 public class Client {
@@ -34,7 +33,7 @@ public class Client {
                     "5. Delete an account. If you attempt to delete an account that contains undelivered message, (ADD HERE)";
 
 
-            Scanner inputReader = new Scanner(System.in).useDelimiter("\n");
+            Scanner inputReader = new Scanner(System.in);
 
             int choice = -1;
             while (true) {
@@ -54,14 +53,11 @@ public class Client {
                 System.out.println(options);
 
                 // Note: This doesn't work yet! I can't get the Client to wait for the Scanner before proceeding.
-                try {
-                    Logging.logDebug("In scanner component");
-                    if (inputReader.hasNext()) {
-                        String line = inputReader.nextLine();
-                        Logging.logDebug("Read \"" + line + "\"");
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                Logging.logDebug("In scanner component");
+                String line;
+                while(inputReader.hasNextLine()) {
+                    line = inputReader.nextLine();
+                    Logging.logDebug("Read \"" + line + "\"");
                 }
 
 

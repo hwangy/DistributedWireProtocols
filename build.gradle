@@ -3,6 +3,7 @@ apply plugin: 'java'
 repositories {
     mavenCentral()
 }
+
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8+'
     testImplementation "org.mockito:mockito-core:3.+"
@@ -15,6 +16,13 @@ task(runServer, dependsOn: 'classes', type: JavaExec) {
 
 task(runClient, dependsOn: 'classes', type: JavaExec) {
     main = 'messenger.Client'
+    standardInput = System.in
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+task(runExample, dependsOn: 'classes', type: JavaExec) {
+    main = 'messenger.BasicExample'
+    standardInput = System.in
     classpath = sourceSets.main.runtimeClasspath
 }
 
