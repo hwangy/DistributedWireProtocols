@@ -238,8 +238,10 @@ public class Client {
                 messageConnection.close();
             }
             connection.close();
-        } catch(Exception e) {
-            System.out.println(e);
+        } catch(IOException e) {
+            Logging.logInfo("Connection closed.");
+        } catch(APIException e) {
+            Logging.logInfo("Service exception encountered: " + e.getMessage());
         }
     }
 
@@ -255,8 +257,8 @@ public class Client {
                     Message message = Message.genMessage(connection);
                     Logging.logInfo(message.toString());
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (IOException e) {
+                Logging.logInfo("Message receiver service closed.");
             }
         }
     }
