@@ -27,10 +27,10 @@ public class Server {
             Logging.logInfo("Waiting for connection...");
 
             while(true) {
-                Socket s=serverSocket.accept();//establishes connection
-                Logging.logInfo("New connection established " + s.getInetAddress().getHostAddress());
-                ClientHandler clientHandler = new ClientHandler(s, server);
-                clientHandler.init();
+                Socket socket = serverSocket.accept();//establishes connection
+                Logging.logInfo("New connection established " + socket.getInetAddress().getHostAddress());
+                Connection connection = new Connection(socket);
+                ClientHandler clientHandler = new ClientHandler(connection, server);
                 new Thread(clientHandler).start();
             }
         } catch(Exception e) {
@@ -46,20 +46,29 @@ public class Server {
         }
     }
 
+    /**
+     * The ClientHandler class is created per-connected user and handles requests
+     * from that client. It maintains a handle to a `ServerCore` object (shared)
+     * by all the ClientHandlers, so that they can all update the same state.
+     *
+     * Concurrency safety is not ensured for `ServerCore`.
+     */
     public static class ClientHandler implements Runnable {
-        private final Socket clientSocket;
         private final ServerCore server;
 
-        private Connection connection;
+        private final Connection connection;
         // Constructor
-        public ClientHandler(Socket socket, ServerCore server)
-        {
-            this.clientSocket = socket;
-            this.server = server;
-        }
 
-        public void init() throws IOException {
-            this.connection = new Connection(clientSocket);
+        /**
+         * Create a ClientHandler on a given Connection and ServerCore.
+         *
+         * @param connection    The connection this handler reads from and writes to.
+         * @param server        The object used to update the state of the server.
+         */
+        public ClientHandler(Connection connection, ServerCore server)
+        {
+            this.connection = connection;
+            this.server = server;
         }
 
         public void run() {

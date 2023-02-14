@@ -1,6 +1,7 @@
 package messenger.objects.request;
 
 import messenger.network.Connection;
+import messenger.util.Logging;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

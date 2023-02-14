@@ -241,3 +241,6 @@ server to know how many arguments it'll be receiving without being told.
 
 > **Decision** Add to the wire protocol support for receiving a variable number of responses and requests, by first
 > sending the number of strings to be sent, followed by a corresponding number of strings.
+
+> **Decision** Add a helper class `Connection` which holds the DataInputStream and DataOutputstream.
+> This should make testing using Mockito easier.
