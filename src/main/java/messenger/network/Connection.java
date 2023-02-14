@@ -48,6 +48,14 @@ public class Connection {
         outputStream.writeInt(toSend);
     }
 
+    public Long readLong() throws IOException {
+        return inputStream.readLong();
+    }
+
+    public void writeLong(Long toSend) throws IOException {
+        outputStream.writeLong(toSend);
+    }
+
     /**
      * Reads a Java String from the input connection, using the UTF
      * format.

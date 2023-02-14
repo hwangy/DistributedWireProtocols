@@ -1,10 +1,7 @@
 # Wire Protocol
 
 Requests are always sent from the client to the server, and responses
-or messages. For the responses and messages, since they travel in the
-same direction, the *first* integer of the response / message will
-identify whether this is a response or message. 0 corresponds to an API
-request, and 1 corresponds to a message.
+and messages are always sent from the server to the client.
 
 ## Request
 The request specifies the method the client is calling, as well as any
@@ -31,8 +28,6 @@ length parameter in the protocol.
 ## Response
 ```
 Response {
-    // First field is always 1 for Responses
-    (4)int 1,
 	(4)int success,
 	(4)int number of responses,
 	If success = 0
@@ -46,12 +41,14 @@ Response {
 }
 ```
 
+We also have Message object, which is sent in response to a request
+by another logged-in client to send a message.
+
 ```
 Message {
-    // First field is always 0 for Messages
-    (4)int 0
     UTF sent timestamp,
     UTF sender,
+    UTF receiver,
     UTF message
 }
 ```

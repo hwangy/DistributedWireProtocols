@@ -23,7 +23,7 @@ public class ClientCore {
     */
     public Boolean loginAPI(LoginRequest request, StatusMessageResponse response) {
         Boolean success = response.isSuccessful();
-        if(success) {
+        if (success) {
             this.username = request.getUsername();
         } else {
             Logging.logService("Failed to log in.");

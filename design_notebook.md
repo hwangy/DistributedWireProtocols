@@ -251,5 +251,10 @@ As a result, we have added the `username` field to many of the requests, and the
 allow methods other than `CREATE_USER` to be called if `username` is set.
 
 We also realized we need to treat messages and API calls separately; we don't want the client to
-mistake a message as a response to a request. Thus, we are augmenting our wire protocol to specify
-whether it corresponds to a message or API response.
+mistake a message as a response to a request. We considered several options; one of which is having
+the wire protocol start with an int indicating whether it is a message or a response. But this 
+seemed complicated to design, so we went with the following approach.
+> **Decision** The client and server will maintain a message-specific thread. The client, once the
+> user has logged in, will launch a MessageReceiver thread, listening for incoming messages. The
+> server, also when a user has logged in, will launch a MessageDispatcher thread, which checks 
+> queued messages for those addressed to that specific user, then sends it.

@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Response {
-
     private final Boolean success;
     private final List<String> responses;
 
@@ -18,7 +17,7 @@ public class Response {
     }
 
     public Boolean isSuccessful() {
-        return isSuccessful();
+        return success;
     }
 
     public List<String> getResponses() {
