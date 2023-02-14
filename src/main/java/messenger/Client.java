@@ -5,6 +5,7 @@ import messenger.objects.*;
 import messenger.api.API;
 import messenger.objects.request.*;
 import messenger.objects.response.Response;
+import messenger.objects.response.StatusMessageResponse;
 import messenger.util.Logging;
 
 import java.net.*;
@@ -107,7 +108,7 @@ public class Client {
                     }
 
                     // If acceptable response (change to account for this)
-                    client.setUsername(null);
+                    //client.setUsername(null);
                     inputReader.close();
                     break;
 
@@ -127,7 +128,10 @@ public class Client {
 
                     // Have message for if username already attached to account.
                     // If acceptable response (change to account for this)
-                    client.setUsername(username);
+                    //client.setUsername(username);
+                    LoginRequest login_request = new LoginRequest(username);
+                    StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
+                    client.loginAPI(login_request, statusResponses);
 
                 } else if (method == API.GET_ACCOUNTS){
                     String text_wildcard = "";
@@ -173,9 +177,11 @@ public class Client {
                     }
                 } else if (method == API.GET_UNDELIVERED_MESSAGES){
                     String username = "";
-                    System.out.println("Specify the username of the account to deliver undelivered messages to.");
-                    username = inputReader.nextLine();
-                    System.out.println("Username: " + username);
+                    //System.out.println("Specify the username of the account to deliver undelivered messages to.");
+                    //username = inputReader.nextLine();
+                    //System.out.println("Username: " + username);
+                    username = client.getUsername();
+                    System.out.println("Delivering undelivered messages to: " + username);
                     
                     //Logging.logDebug("Test get undelivered messages");
                     GetUndeliveredMessagesRequest request = new GetUndeliveredMessagesRequest(username);
@@ -199,7 +205,7 @@ public class Client {
                     }
 
                     // If successful (change to account for this)
-                    client.setUsername(null);
+                   // client.setUsername(null);
                 } else if (method == API.LOGIN) {
                     System.out.println("Select the username.");
                     username = inputReader.nextLine();
@@ -213,9 +219,8 @@ public class Client {
                         System.out.println("[RESPONSE] " + response);
                     }
 
-                    // If acceptable response (change to account for this)
-                    client.setUsername(username);
-
+                    StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
+                    client.loginAPI(request, statusResponses);
                 }
 
             }

@@ -19,6 +19,7 @@ public class ListMessageResponse<T extends Object> implements MethodResponseInte
     public Boolean isSuccessful() {
         return success;
     }
+    
     @Override
     public String getStringStatus() {
         String response;

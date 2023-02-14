@@ -3,6 +3,7 @@ package messenger;
 import messenger.objects.Message;
 import messenger.objects.request.*;
 import messenger.objects.response.*;
+import messenger.util.Logging;
 
 import java.util.*;
 
@@ -17,18 +18,18 @@ public class ClientCore {
         return this.username;
     }
 
-    public void setUsername(String name) {
-        this.username = name;
+    /* If the login response tells us that the server has succeeded in logging in, 
+      update the username in ClientCore. Else return a failure message.
+    */
+    public Boolean loginAPI(LoginRequest request, StatusMessageResponse response) {
+        Boolean success = response.isSuccessful();
+        if(success) {
+            this.username = request.getUsername();
+        } else {
+            Logging.logService("Failed to log in.");
+        }
+        return success;
     }
 
-
-    /*public LoginResponse setUsername(String username) {
-        return 
-    }*/
-
-    // actually should be in server?
-    /*public LoginResponse setLoginUsername(LoginRequest request) {
-        String username = request.getUsername();
-    }*/
 
 }
