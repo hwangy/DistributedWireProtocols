@@ -24,8 +24,8 @@ public class Client {
     // set, then only the `createUser` method can be called.
     private static String username = null;
 
-    public static Connection launchMessageReceiver() throws IOException {
-        messageSocket = new Socket("localhost", 7777);
+    public static Connection launchMessageReceiver(String address) throws IOException {
+        messageSocket = new Socket(address, 7777);
         Connection connection = new Connection(messageSocket);
         MessageReceiver receiver = new MessageReceiver(connection);
         new Thread(receiver).start();
@@ -128,7 +128,7 @@ public class Client {
                     StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
                     client.loginAPI(login_request, statusResponses);
 
-                    messageConnection = launchMessageReceiver();
+                    messageConnection = launchMessageReceiver(address);
                 } else if (method == API.GET_ACCOUNTS){
                     String text_wildcard = "";
                     Logging.logService("Optionally, specificy a text wildcard. Else press enter.");
@@ -217,7 +217,7 @@ public class Client {
                     StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
                     client.loginAPI(request, statusResponses);
 
-                    messageConnection = launchMessageReceiver();
+                    messageConnection = launchMessageReceiver(address);
                 }
 
             }
