@@ -34,15 +34,18 @@ public class Client {
     }
 
     public static void main(String[] args) {
+        Scanner inputReader = new Scanner(System.in);
+
+        // Get server IP address from user.
+        System.out.println("Enter the IP address of the server you wish to connect to:");
+        String address = inputReader.nextLine();
 
         try {
-            Socket socket = new Socket("localhost", 6666);
+            Socket socket = new Socket(address, 6666);
+            Logging.logInfo("Connection established to " + address);
+
             connection = new Connection(socket);
             ClientCore client = new ClientCore();
-
-            // Ask user for the server's IP address
-
-            //Socket s=new Socket("10.250.94.79",6666);
 
             String options = "Pick an option:\n" +
                     "0. Exit (and log-out).\n" +
@@ -52,24 +55,8 @@ public class Client {
                     "4. Deliver undelivered messages to a particular user.\n" +
                     "5. Delete an account.\n" +
                     "6. Log in to an existing account.";
-
-            Scanner inputReader = new Scanner(System.in);
-
             int choice = -1;
             while (true) {
-                /*
-                1. Ask for choice of method
-                2. Get arguments for method
-                IF
-                    3. [Method]Request req = gen[Method]Request(String arguments...)
-                    4. String rawRequest = encodeRequest(req.getGenericRequest());
-                    5. sendToServer(rawRequest());
-                    6. String response = getFromServer();
-                    7. [Method]Response response = [Method]Response.parseResponse(Response.fromString(response));
-                    8. Take some action based on the server's response
-                        (e.g. adding messages to hashmap, telling user there was a failure)
-                 */
-
                 System.out.println(options);
                 
                 try {
