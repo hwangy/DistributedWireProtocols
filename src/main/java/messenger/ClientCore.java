@@ -17,6 +17,11 @@ public class ClientCore {
         return this.username;
     }
 
+    public void setUsername(String name) {
+        this.username = name;
+    }
+
+
     /*public LoginResponse setUsername(String username) {
         return 
     }*/
