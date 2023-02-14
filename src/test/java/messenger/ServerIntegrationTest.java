@@ -12,7 +12,15 @@ import java.io.IOException;
 
 import static org.mockito.Mockito.when;
 
-public class IntegrationTest {
+/**
+ * This class contains interation tests for the server, targeted
+ * at ensuring given a properly formatted request from the Client,
+ * the correct method is executed on the Server.
+ *
+ * Each method tests a separate API call. More complex interactions,
+ * (e.g. creating duplicate users) is tested in `ServerCoreTest`.
+ */
+public class ServerIntegrationTest {
 
     /**
      * Test creating a username. Mock the connection object

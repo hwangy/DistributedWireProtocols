@@ -108,6 +108,9 @@ public class Server {
                             GetUndeliveredMessagesRequest getUndeliveredMessagesRequest =
                                     new GetUndeliveredMessagesRequest(request);
                             response = server.getUndeliveredMessagesAPI(getUndeliveredMessagesRequest);
+                        } else if (calledMethod == API.SEND_MESSAGE) {
+                            SendMessageRequest sendMessageRequest = new SendMessageRequest(request);
+                            response = server.sendMessageAPI(sendMessageRequest);
                         }
                         if (response != null) {
                             Logging.logService(response.getStringStatus());
@@ -118,7 +121,7 @@ public class Server {
                         Logging.logInfo("Connection closed");
                         break;
                     } catch (APIException e) {
-                        e.printStackTrace();
+                        //TODO: Return API exceptions to the client.
                     }
                 }
             } catch (IOException e) {

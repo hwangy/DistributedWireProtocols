@@ -244,3 +244,8 @@ server to know how many arguments it'll be receiving without being told.
 
 > **Decision** Add a helper class `Connection` which holds the DataInputStream and DataOutputstream.
 > This should make testing using Mockito easier.
+
+## February 14th
+We've realized that the username needs to be set for many of the methods to work, on the client side.
+As a result, we have added the `username` field to many of the requests, and the client will only
+allow methods other than `CREATE_USER` to be called if `username` is set.
