@@ -17,13 +17,13 @@ public class ClientCore {
         return this.username;
     }
 
-    public LoginResponse setUsername(String username) {
-        
-    }
+    /*public LoginResponse setUsername(String username) {
+        return 
+    }*/
 
     // actually should be in server?
-    public LoginResponse setLoginUsername(LoginRequest request) {
+    /*public LoginResponse setLoginUsername(LoginRequest request) {
         String username = request.getUsername();
-    }
+    }*/
 
 }
