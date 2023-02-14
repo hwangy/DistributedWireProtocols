@@ -41,7 +41,7 @@ public class ServerIntegrationTest {
                     API.CREATE_ACCOUNT.getIdentifier(),1).thenThrow(EOFException.class);
             // Then the request should specify the username.
             when(connection.readString()).thenReturn(TestUtils.testUser);
-            Server.ClientHandler clientHandler = new Server.ClientHandler(connection, core);
+            Server.ClientHandler clientHandler = new Server.ClientHandler(connection, core, null);
             clientHandler.run();
 
             // Check user exists.

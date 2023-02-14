@@ -8,6 +8,7 @@ import messenger.objects.response.Response;
 import messenger.objects.response.StatusMessageResponse;
 import messenger.util.Logging;
 
+import java.io.IOException;
 import java.net.*;
 import java.util.*;
 
@@ -16,10 +17,22 @@ public class Client {
     private Map<String, ArrayList<Message>> receivedMessages;
 
     private static Connection connection;
+    private static Connection messageConnection;
+    private static Socket messageSocket;
 
     // The username associated with the client; if this is not
     // set, then only the `createUser` method can be called.
     private static String username = null;
+
+    public static Connection launchMessageReceiver() throws IOException {
+        Logging.logDebug("Looking for connection...");
+        messageSocket = new Socket("localhost", 7777);
+        Connection connection = new Connection(messageSocket);
+        MessageReceiver receiver = new MessageReceiver(connection);
+        new Thread(receiver).start();
+
+        return connection;
+    }
 
     public static void main(String[] args) {
 
@@ -132,6 +145,8 @@ public class Client {
                     StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
                     client.loginAPI(login_request, statusResponses);
 
+                    Logging.logDebug("Launching message receiver.");
+                    launchMessageReceiver();
                 } else if (method == API.GET_ACCOUNTS){
                     String text_wildcard = "";
                     System.out.println("Optionally, specificy a text wildcard. Else press enter.");
@@ -227,5 +242,24 @@ public class Client {
         } catch(Exception e) {
             System.out.println(e);
         }
-    }  
+    }
+
+    public static class MessageReceiver implements Runnable {
+        private final Connection connection;
+        public MessageReceiver(Connection connection) {
+            this.connection = connection;
+        }
+
+        public void run() {
+            try {
+                Logging.logDebug("Waiting for messages...");
+                while (true) {
+                    Message message = Message.genMessage(connection);
+                    Logging.logInfo(message.toString());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

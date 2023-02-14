@@ -4,12 +4,15 @@ import messenger.network.Connection;
 import messenger.objects.Message;
 import messenger.objects.request.*;
 import messenger.objects.response.*;
+import messenger.util.Logging;
 
 import java.util.*;
 
 public class ServerCore {
     private final Map<String, List<Message>> sentMessages;
-    private final Map<String, List<Message>> queuedMessages;
+    private final Map<String, List<Message>> queuedMessagesMap;
+
+    private final Map<String, List<Message>> undeliveredMessages;
     private final Set<String> loggedInUsers;
     private final Set<String> allAccounts;
 
@@ -21,7 +24,8 @@ public class ServerCore {
 
     public ServerCore() {
        this.sentMessages = new HashMap<>();
-       this.queuedMessages = new HashMap<>();
+       this.queuedMessagesMap = new HashMap<>();
+       this.undeliveredMessages = new HashMap<>();
        this.loggedInUsers = new HashSet<>();
        this.allAccounts = new HashSet<>();
        loggedInConnections = new HashMap<>();
@@ -33,6 +37,57 @@ public class ServerCore {
 
     public void addConnection(String username, Connection connection) {
         loggedInConnections.put(username, connection);
+    }
+
+    /**
+     * Queue message for delivery (whether immediately or later
+     * if the user is not logged in).
+     *
+     * @param message   Message to be queued.
+     */
+    public void queueMessage(Message message) {
+        List<Message> messageList;
+        String recepient = message.getRecepient();
+        if (queuedMessagesMap.containsKey(recepient)) {
+            messageList = queuedMessagesMap.get(recepient);
+        } else {
+            messageList = new ArrayList<Message>();
+            queuedMessagesMap.put(recepient, messageList);
+        }
+        messageList.add(message);
+    }
+
+    public Optional<List<Message>> getQueuedMessages(String username) {
+        if (queuedMessagesMap.containsKey(username)) {
+            return Optional.of(queuedMessagesMap.get(username));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    public void unqueueMessages(String username) {
+        List<Message> messageList;
+
+        if (sentMessages.containsKey(username)) {
+            messageList = sentMessages.get(username);
+        } else {
+            messageList = new ArrayList<Message>();
+            sentMessages.put(username, messageList);
+        }
+
+        Optional<List<Message>> queuedMessages = getQueuedMessages(username);
+        if (queuedMessages.isPresent()) {
+            messageList.addAll(queuedMessages.get());
+            queuedMessagesMap.remove(username);
+        }
+    }
+
+    public Boolean isLoggedIn(String username) {
+        return loggedInUsers.contains(username);
+    }
+
+    public void logoutUser(String username) {
+        loggedInUsers.remove(username);
     }
 
     /**
@@ -109,8 +164,8 @@ public class ServerCore {
      */
     public GetUndeliveredMessagesResponse getUndeliveredMessagesAPI(GetUndeliveredMessagesRequest request) {
         String username = request.getUsername();
-        if (queuedMessages.containsKey(username)) {
-            return new GetUndeliveredMessagesResponse(true, queuedMessages.get(username));
+        if (queuedMessagesMap.containsKey(username)) {
+            return new GetUndeliveredMessagesResponse(true, queuedMessagesMap.get(username));
         } else {
             return new GetUndeliveredMessagesResponse(true, new ArrayList<>());
         }
@@ -120,20 +175,22 @@ public class ServerCore {
         String sender = request.getSender();
         String recipient = request.getRecipient();
         String strMessage = request.getMessage();
+        Logging.logDebug("Got fields.");
 
         // Create Message object.
         Message message = new Message(System.currentTimeMillis(), sender, recipient, strMessage);
+        Logging.logDebug("created message");
         // If the user is logged in, immediately send the message.
         if (loggedInUsers.contains(recipient)) {
 
             return new SendMessageResponse(true, "Message sent successfully.");
         } else {
             List<Message> messages;
-            if (queuedMessages.containsKey(recipient)) {
-                messages = queuedMessages.get(recipient);
+            if (queuedMessagesMap.containsKey(recipient)) {
+                messages = queuedMessagesMap.get(recipient);
             } else {
-                messages = new ArrayList<Message>();
-                queuedMessages.put(recipient, messages);
+                messages = new ArrayList<>();
+                queuedMessagesMap.put(recipient, messages);
             }
             messages.add(message);
             return new SendMessageResponse(true, "Message queued for delivery.");

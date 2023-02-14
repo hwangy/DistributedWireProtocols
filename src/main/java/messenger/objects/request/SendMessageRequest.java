@@ -34,7 +34,7 @@ public class SendMessageRequest implements MethodRequestInterface {
     }
     @Override
     public Request genGenericRequest() {
-        return new Request(getIdentifier(), Arrays.asList(new String[]{recipient}));
+        return new Request(getIdentifier(), Arrays.asList(sender, recipient, message));
     }
 
     public String getSender() {
