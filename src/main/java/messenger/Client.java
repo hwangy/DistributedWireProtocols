@@ -21,6 +21,7 @@ public class Client {
     private static String username = null;
 
     public static void main(String[] args) {
+
         try {
             Socket socket = new Socket("localhost", 6666);
             connection = new Connection(socket);
@@ -70,10 +71,10 @@ public class Client {
                     // throw an exception?
                     System.out.println("Please enter a number between 1 and 6.");
                     continue;
-                } else if (choice == 0) {
-                    inputReader.close();
-                    break;
-                }
+                } //else if (choice == 0) {
+                    //inputReader.close();
+                   // break;
+                //}
 
                 API method;
                 try {
@@ -93,18 +94,22 @@ public class Client {
                 }
 
                 System.out.println("You have chosen option: " + choice);
-                if (method == API.LOGIN) {
-                    System.out.println("Select the username.");
-                    username = inputReader.nextLine();
-                    System.out.println("Username: " + username);
+                if (method == API.LOGOUT) {
+                    client.getUsername();
+                    System.out.println("Logging out of the account associated to the username: " + username);
 
-                    System.out.println("Attempting to log in...");
-                    LoginRequest request = new LoginRequest(username);
+                    System.out.println("Attempting to log out...");
+                    LogoutRequest request = new LogoutRequest(username);
                     request.genGenericRequest().writeToStream(connection);
                     Response responses = Response.genResponse(connection);
                     for (String response : responses.getResponses()) {
                         System.out.println("[RESPONSE] " + response);
                     }
+
+                    // If acceptable response (change to account for this)
+                    client.setUsername(null);
+                    inputReader.close();
+                    break;
 
                 } else if (method == API.CREATE_ACCOUNT) {
                     System.out.println("Pick your username.");
@@ -121,8 +126,9 @@ public class Client {
                     }
 
                     // Have message for if username already attached to account.
+                    // If acceptable response (change to account for this)
+                    client.setUsername(username);
 
-                    // Get response
                 } else if (method == API.GET_ACCOUNTS){
                     String text_wildcard = "";
                     System.out.println("Optionally, specificy a text wildcard. Else press enter.");
@@ -157,6 +163,7 @@ public class Client {
                     message = inputReader.nextLine();
                     System.out.println("Message: " + message);
                     // Is it ok to only handle 1-line messages?
+                    username = client.getUsername();
 
                     SendMessageRequest request = new SendMessageRequest(username, recipient, message);
                     request.genGenericRequest().writeToStream(connection);
@@ -179,10 +186,10 @@ public class Client {
                     }
                 } else if (method ==API.DELETE_ACCOUNT) {
                     // Question: If the user is logged in, do we want to ask for username?
-                    String username = "";
-                    System.out.println("Specify the username of the account to delete.");
-                    username = inputReader.nextLine();
-                    System.out.println("Username: " + username);
+                    username = client.getUsername();
+                    System.out.println("Deleting the account associated to the username: " + username);
+                    //username = inputReader.nextLine();
+                    //System.out.println("Username: " + username);
                     //Logging.logDebug("Test delete account");
                     DeleteAccountRequest request = new DeleteAccountRequest(username);
                     request.genGenericRequest().writeToStream(connection);
@@ -190,7 +197,26 @@ public class Client {
                     for (String response : responses.getResponses()) {
                         System.out.println("[RESPONSE] " + response);
                     }
-                } 
+
+                    // If successful (change to account for this)
+                    client.setUsername(null);
+                } else if (method == API.LOGIN) {
+                    System.out.println("Select the username.");
+                    username = inputReader.nextLine();
+                    System.out.println("Username: " + username);
+
+                    System.out.println("Attempting to log in...");
+                    LoginRequest request = new LoginRequest(username);
+                    request.genGenericRequest().writeToStream(connection);
+                    Response responses = Response.genResponse(connection);
+                    for (String response : responses.getResponses()) {
+                        System.out.println("[RESPONSE] " + response);
+                    }
+
+                    // If acceptable response (change to account for this)
+                    client.setUsername(username);
+
+                }
 
             }
             connection.close();
