@@ -182,15 +182,22 @@ public class ServerCore {
         Message message = new Message(System.currentTimeMillis(), sender, recipient, strMessage);
         // If the user is logged in, immediately send the message.
         if (loggedInUsers.contains(recipient)) {
-
-            return new SendMessageResponse(true, "Message sent successfully.");
-        } else {
             List<Message> messages;
             if (queuedMessagesMap.containsKey(recipient)) {
                 messages = queuedMessagesMap.get(recipient);
             } else {
                 messages = new ArrayList<>();
                 queuedMessagesMap.put(recipient, messages);
+            }
+            messages.add(message);
+            return new SendMessageResponse(true, "Message sent successfully.");
+        } else {
+            List<Message> messages;
+            if (undeliveredMessages.containsKey(recipient)) {
+                messages = undeliveredMessages.get(recipient);
+            } else {
+                messages = new ArrayList<>();
+                undeliveredMessages.put(recipient, messages);
             }
             messages.add(message);
             return new SendMessageResponse(true, "Message queued for delivery.");
