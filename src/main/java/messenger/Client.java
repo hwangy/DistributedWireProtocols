@@ -17,7 +17,7 @@ public class Client {
     private Map<String, ArrayList<Message>> receivedMessages;
 
     private static Connection connection;
-    private static Connection messageConnection;
+    private static Connection messageConnection = null;
     private static Socket messageSocket;
 
     // The username associated with the client; if this is not
@@ -25,7 +25,6 @@ public class Client {
     private static String username = null;
 
     public static Connection launchMessageReceiver() throws IOException {
-        Logging.logDebug("Looking for connection...");
         messageSocket = new Socket("localhost", 7777);
         Connection connection = new Connection(messageSocket);
         MessageReceiver receiver = new MessageReceiver(connection);
@@ -46,13 +45,13 @@ public class Client {
             //Socket s=new Socket("10.250.94.79",6666);
 
             String options = "Pick an option:\n" +
-                    "0. Exit (log out).\n" +
-                    "1. Create an account. You must supply a unique user name.\n" +
+                    "0. Exit (and log-out).\n" +
+                    "1. Create an account (and log-in). You must supply a unique user name.\n" +
                     "2. List accounts (or a subset of the accounts, by text wildcard)\n" +
                     "3. Send a message to a recipient.\n" +
                     "4. Deliver undelivered messages to a particular user.\n" +
-                    "5. Delete an account. If you attempt to delete an account that contains undelivered message, (ADD HERE)\n" +
-                    "6. Log in to an existing account.\n";
+                    "5. Delete an account.\n" +
+                    "6. Log in to an existing account.";
 
             Scanner inputReader = new Scanner(System.in);
 
@@ -148,8 +147,7 @@ public class Client {
                     StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
                     client.loginAPI(login_request, statusResponses);
 
-                    Logging.logDebug("Launching message receiver.");
-                    launchMessageReceiver();
+                    messageConnection = launchMessageReceiver();
                 } else if (method == API.GET_ACCOUNTS){
                     String text_wildcard = "";
                     System.out.println("Optionally, specificy a text wildcard. Else press enter.");
@@ -183,7 +181,6 @@ public class Client {
                     System.out.println("Specify your message.");
                     message = inputReader.nextLine();
                     System.out.println("Message: " + message);
-                    // Is it ok to only handle 1-line messages?
                     username = client.getUsername();
 
                     SendMessageRequest request = new SendMessageRequest(username, recipient, message);
@@ -198,7 +195,7 @@ public class Client {
                     //username = inputReader.nextLine();
                     //System.out.println("Username: " + username);
                     username = client.getUsername();
-                    System.out.println("Delivering undelivered messages to: " + username);
+                    Logging.logService("Delivering undelivered messages to: " + username);
                     
                     //Logging.logDebug("Test get undelivered messages");
                     GetUndeliveredMessagesRequest request = new GetUndeliveredMessagesRequest(username);
@@ -238,8 +235,13 @@ public class Client {
 
                     StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
                     client.loginAPI(request, statusResponses);
+
+                    messageConnection = launchMessageReceiver();
                 }
 
+            }
+            if (messageConnection != null) {
+                messageConnection.close();
             }
             connection.close();
         } catch(Exception e) {
@@ -255,7 +257,6 @@ public class Client {
 
         public void run() {
             try {
-                Logging.logDebug("Waiting for messages...");
                 while (true) {
                     Message message = Message.genMessage(connection);
                     Logging.logInfo(message.toString());

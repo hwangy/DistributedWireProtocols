@@ -127,8 +127,10 @@ public class ServerCore {
             message = "User " + username + " already exists.";
         } else {
             this.allAccounts.add(username);
+            // Also log in the user.
+            this.loggedInUsers.add(username);
             success = true;
-            message = "User " + username + " created successfully.";
+            message = "User " + username + " created and logged in successfully.";
         }
         return new CreateAccountResponse(success, message);
     }
@@ -175,11 +177,9 @@ public class ServerCore {
         String sender = request.getSender();
         String recipient = request.getRecipient();
         String strMessage = request.getMessage();
-        Logging.logDebug("Got fields.");
 
         // Create Message object.
         Message message = new Message(System.currentTimeMillis(), sender, recipient, strMessage);
-        Logging.logDebug("created message");
         // If the user is logged in, immediately send the message.
         if (loggedInUsers.contains(recipient)) {
 
@@ -194,6 +194,26 @@ public class ServerCore {
             }
             messages.add(message);
             return new SendMessageResponse(true, "Message queued for delivery.");
+        }
+    }
+
+    public LoginResponse loginUserAPI(LoginRequest request) {
+        String username = request.getUsername();
+        if (loggedInUsers.contains(username)) {
+            return new LoginResponse(false, "User " + username + " already logged in.");
+        } else {
+            loggedInUsers.add(username);
+            return new LoginResponse(true, "User " + username + " logged in successfully.");
+        }
+    }
+
+    public LogoutResponse logoutUserAPI(LogoutRequest request) {
+        String username = request.getUsername();
+        if (loggedInUsers.contains(username)) {
+            loggedInUsers.remove(username);
+            return new LogoutResponse(true, "User " + username + " logged out successfully.");
+        } else {
+            return new LogoutResponse(false, "User " + username + " not logged in.");
         }
     }
 }
