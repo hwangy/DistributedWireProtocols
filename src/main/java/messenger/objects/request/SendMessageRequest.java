@@ -8,17 +8,20 @@ import java.util.List;
 
 public class SendMessageRequest implements MethodRequestInterface {
     private final String recipient;
+    private final String message;
 
-    public SendMessageRequest(String recipient) {
+    public SendMessageRequest(String recipient, String message) {
         this.recipient = recipient;
+        this.message = message;
     }
 
     public SendMessageRequest(Request request) throws APIException {
         List<String> args = request.getArguments();
-        if (args.size() != 1) {
-            throw new APIException("SendMessageRequest expects 1 argument, got " + args.size());
+        if (args.size() != 2) {
+            throw new APIException("SendMessageRequest expects 2 argument, got " + args.size());
         } else {
             this.recipient = args.get(0);
+            this.message = args.get(1);
         }
     }
 
@@ -33,5 +36,9 @@ public class SendMessageRequest implements MethodRequestInterface {
 
     public String getRecipient() {
         return this.recipient;
+    }
+
+    public String getMessage() {
+        return this.message;
     }
 }
