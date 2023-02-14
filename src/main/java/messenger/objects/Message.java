@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Message extends Object {
-    private final Integer timestamp;
+    private final Long timestamp;
     private Integer delivered_timestamp;
     private final String sender;
     private final String receiver;
@@ -19,7 +19,7 @@ public class Message extends Object {
      * @param receiver  Username of receiver
      * @param message   Message contents
      */
-    public Message(int timestamp, String sender,
+    public Message(Long timestamp, String sender,
                    String receiver, String message){
         this.timestamp = timestamp;
         this.sender = sender;

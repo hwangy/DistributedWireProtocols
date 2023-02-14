@@ -1,14 +1,8 @@
 package messenger;
 
 import messenger.objects.Message;
-import messenger.objects.request.CreateAccountRequest;
-import messenger.objects.request.DeleteAccountRequest;
-import messenger.objects.request.GetAccountsRequest;
-import messenger.objects.request.GetUndeliveredMessagesRequest;
-import messenger.objects.response.CreateAccountResponse;
-import messenger.objects.response.DeleteUserResponse;
-import messenger.objects.response.GetAccountsResponse;
-import messenger.objects.response.GetUndeliveredMessagesResponse;
+import messenger.objects.request.*;
+import messenger.objects.response.*;
 
 import java.util.*;
 
@@ -108,5 +102,16 @@ public class ServerCore {
         } else {
             return new GetUndeliveredMessagesResponse(true, new ArrayList<>());
         }
+    }
+
+    public SendMessageResponse sendMessageAPI(SendMessageRequest request) {
+        String sender = request.getSender();
+        String recipient = request.getRecipient();
+        String strMessage = request.getMessage();
+
+        // Create Message object.
+        Message message = new Message(System.currentTimeMillis(), sender, recipient, strMessage);
+        //TODO: Fix
+        return null;
     }
 }

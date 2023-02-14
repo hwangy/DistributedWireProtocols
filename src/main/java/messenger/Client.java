@@ -1,4 +1,5 @@
 package messenger;
+import messenger.api.APIException;
 import messenger.network.Connection;
 import messenger.objects.*;
 import messenger.api.API;
@@ -14,6 +15,10 @@ public class Client {
     private Map<String, ArrayList<Message>> receivedMessages;
 
     private static Connection connection;
+
+    // The username associated with the client; if this is not
+    // set, then only the `createUser` method can be called.
+    private static String username = null;
 
     public static void main(String[] args) {
         try {
@@ -62,11 +67,25 @@ public class Client {
                     break;
                 }
 
-                System.out.println("You have chosen option: " + choice);
+                API method;
+                try {
+                    method = API.fromInt(choice);
+                } catch (APIException ex) {
+                    // Invalid choice selected.
+                    Logging.logService("Invalid choice selected, please try again.");
+                    continue;
+                }
 
-                API method = API.fromInt(choice);
+                // The user should only be allowed to select a method
+                // besides `CREATE_ACCOUNT` if the username is set.
+                if (method != API.CREATE_ACCOUNT && username == null) {
+                    Logging.logService("Please first create a username, by selecting option "
+                            + API.CREATE_ACCOUNT.getIdentifier());
+                    continue;
+                }
+
+                System.out.println("You have chosen option: " + choice);
                 if (method == API.CREATE_ACCOUNT) {
-                    String username = "";
                     System.out.println("Pick your username.");
                     username = inputReader.next();
                     System.out.println("Username: " + username);
@@ -118,8 +137,7 @@ public class Client {
                     System.out.println("Message: " + message);
                     // Is it ok to only handle 1-line messages?
 
-                    //Logging.logDebug("Test send message");
-                    SendMessageRequest request = new SendMessageRequest(recipient, message);
+                    SendMessageRequest request = new SendMessageRequest(username, recipient, message);
                     request.genGenericRequest().writeToStream(connection);
                     Response responses = Response.genResponse(connection);
                     for (String response : responses.getResponses()) {

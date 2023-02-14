@@ -241,3 +241,11 @@ server to know how many arguments it'll be receiving without being told.
 
 > **Decision** Add to the wire protocol support for receiving a variable number of responses and requests, by first
 > sending the number of strings to be sent, followed by a corresponding number of strings.
+
+> **Decision** Add a helper class `Connection` which holds the DataInputStream and DataOutputstream.
+> This should make testing using Mockito easier.
+
+## February 14th
+We've realized that the username needs to be set for many of the methods to work, on the client side.
+As a result, we have added the `username` field to many of the requests, and the client will only
+allow methods other than `CREATE_USER` to be called if `username` is set.

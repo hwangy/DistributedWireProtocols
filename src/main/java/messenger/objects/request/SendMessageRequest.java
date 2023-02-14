@@ -7,21 +7,24 @@ import java.util.Arrays;
 import java.util.List;
 
 public class SendMessageRequest implements MethodRequestInterface {
+    private final String sender;
     private final String recipient;
     private final String message;
 
-    public SendMessageRequest(String recipient, String message) {
+    public SendMessageRequest(String sender, String recipient, String message) {
+        this.sender = sender;
         this.recipient = recipient;
         this.message = message;
     }
 
     public SendMessageRequest(Request request) throws APIException {
         List<String> args = request.getArguments();
-        if (args.size() != 2) {
-            throw new APIException("SendMessageRequest expects 2 argument, got " + args.size());
+        if (args.size() != 3) {
+            throw new APIException("SendMessageRequest expects 3 argument, got " + args.size());
         } else {
-            this.recipient = args.get(0);
-            this.message = args.get(1);
+            this.sender = args.get(0);
+            this.recipient = args.get(1);
+            this.message = args.get(2);
         }
     }
 
@@ -32,6 +35,10 @@ public class SendMessageRequest implements MethodRequestInterface {
     @Override
     public Request genGenericRequest() {
         return new Request(getIdentifier(), Arrays.asList(new String[]{recipient}));
+    }
+
+    public String getSender() {
+        return this.sender;
     }
 
     public String getRecipient() {
