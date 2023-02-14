@@ -31,7 +31,7 @@ public class Client {
             //Socket s=new Socket("10.250.94.79",6666);
 
             String options = "Pick an option:\n" +
-                    "0. Exit (log out)." +
+                    "0. Exit (log out).\n" +
                     "1. Create an account. You must supply a unique user name.\n" +
                     "2. List accounts (or a subset of the accounts, by text wildcard)\n" +
                     "3. Send a message to a recipient.\n" +
@@ -85,8 +85,8 @@ public class Client {
                 }
 
                 // The user should only be allowed to select a method
-                // besides `CREATE_ACCOUNT` if the username is set.
-                if (method != API.CREATE_ACCOUNT && username == null) {
+                // besides `CREATE_ACCOUNT` or `LOGIN` if the username is set.
+                if (method != API.CREATE_ACCOUNT && method != API.LOGIN && username == null) {
                     Logging.logService("Please first create a username or log in, by selecting option "
                             + API.CREATE_ACCOUNT.getIdentifier() + " or " + API.LOGIN.getIdentifier());
                     continue;
