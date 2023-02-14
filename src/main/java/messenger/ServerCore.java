@@ -1,5 +1,6 @@
 package messenger;
 
+import messenger.network.Connection;
 import messenger.objects.Message;
 import messenger.objects.request.*;
 import messenger.objects.response.*;
@@ -7,20 +8,31 @@ import messenger.objects.response.*;
 import java.util.*;
 
 public class ServerCore {
-    private Map<String, ArrayList<Message>> sentMessages;
-    private Map<String, ArrayList<Message>> queuedMessages;
-    private Set<String> loggedInUsers;
-    private Set<String> allAccounts;
+    private final Map<String, List<Message>> sentMessages;
+    private final Map<String, List<Message>> queuedMessages;
+    private final Set<String> loggedInUsers;
+    private final Set<String> allAccounts;
+
+    /**
+     * Maintain a map of logged-in users to their connections,
+     * to facilitate sending messages.
+     */
+    private final Map<String, Connection> loggedInConnections;
 
     public ServerCore() {
        this.sentMessages = new HashMap<>();
        this.queuedMessages = new HashMap<>();
        this.loggedInUsers = new HashSet<>();
        this.allAccounts = new HashSet<>();
+       loggedInConnections = new HashMap<>();
     }
 
     public Set<String> getAccounts() {
         return allAccounts;
+    }
+
+    public void addConnection(String username, Connection connection) {
+        loggedInConnections.put(username, connection);
     }
 
     /**
@@ -111,7 +123,20 @@ public class ServerCore {
 
         // Create Message object.
         Message message = new Message(System.currentTimeMillis(), sender, recipient, strMessage);
-        //TODO: Fix
-        return null;
+        // If the user is logged in, immediately send the message.
+        if (loggedInUsers.contains(recipient)) {
+
+            return new SendMessageResponse(true, "Message sent successfully.");
+        } else {
+            List<Message> messages;
+            if (queuedMessages.containsKey(recipient)) {
+                messages = queuedMessages.get(recipient);
+            } else {
+                messages = new ArrayList<Message>();
+                queuedMessages.put(recipient, messages);
+            }
+            messages.add(message);
+            return new SendMessageResponse(true, "Message queued for delivery.");
+        }
     }
 }

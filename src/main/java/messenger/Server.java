@@ -20,6 +20,7 @@ public class Server {
     public static void main(String[] args){
         ServerCore server = new ServerCore();
         ServerSocket serverSocket = null;
+
         try {
             Logging.logInfo("Starting server...");
             serverSocket=new ServerSocket(6666);
