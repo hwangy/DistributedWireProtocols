@@ -31,5 +31,16 @@ public class ClientCore {
         return success;
     }
 
+    public Boolean logoutAPI(StatusMessageResponse response) {
+        Boolean success = response.isSuccessful();
+        if(success) {
+            this.username = null;
+        } else {
+            Logging.logService("Failed to log out.");
+        }
+        return success;
+    }
+
+
 
 }
