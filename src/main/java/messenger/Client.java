@@ -51,17 +51,12 @@ public class Client {
                  */
 
                 System.out.println(options);
-
-                //Logging.logDebug("In scanner component");
-                //String line;
-                //while(inputReader.hasNextInt()) {
-                    //choice = inputReader.nextInt();
-                    //Logging.logDebug("Read \"" + line + "\"");
-                //}
                 
                 choice = inputReader.nextInt();
                 if (choice < 1|| choice > 6) {
-                    // throw an exception
+                    // throw an exception?
+                    System.out.println("Please enter a number between 1 and 6.");
+                    continue;
                 } else if (choice == 6) {
                     inputReader.close();
                     break;
@@ -77,7 +72,7 @@ public class Client {
                     System.out.println("Username: " + username);
 
                     //Logging.logDebug("Testing create user");
-                    System.out.println("Creating new account...");
+                    System.out.println("Attempting to create a new account...");
                     CreateAccountRequest request = new CreateAccountRequest(username);
                     request.genGenericRequest().writeToStream(connection);
                     Response responses = Response.genResponse(connection);
@@ -92,6 +87,7 @@ public class Client {
                     String text_wildcard = "";
                     System.out.println("Optionally, specificy a text wildcard. Else press enter.");
                     text_wildcard = inputReader.next();
+
                     if(text_wildcard.equals("")){
                         System.out.println("Proceeding with no wildcard.");
                     } else{
