@@ -68,7 +68,6 @@ public class Client {
                 }
                
                 if (choice < 0|| choice > 6) {
-                    // throw an exception?
                     System.out.println("Please enter a number between 1 and 6.");
                     continue;
                 } 
@@ -112,8 +111,6 @@ public class Client {
                     Logging.logService("Pick your username.");
                     username = inputReader.nextLine();
                     Logging.logService("Username: " + username);
-
-                    //Logging.logDebug("Testing create user");
                     Logging.logService("Attempting to create a new account...");
                     CreateAccountRequest request = new CreateAccountRequest(username);
                     request.genGenericRequest().writeToStream(connection);
@@ -121,8 +118,6 @@ public class Client {
                     for (String response : responses.getResponses()) {
                         System.out.println("[RESPONSE] " + response);
                     }
-
-                    // Have message for if username already attached to account.
 
                     LoginRequest login_request = new LoginRequest(username);
                     StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
@@ -138,12 +133,10 @@ public class Client {
                         System.out.println("Proceeding with no wildcard.");
                     } else{
                         System.out.println("Text wildcard: " + text_wildcard);
-                        // need to fix this, next doesn't like enter key but nextLine doesn't work well with client/server.
                     } 
                     
                     // Make sure to handle case of text wildcard empty (search everything) or nonempty.
                     // And are there text wildcards we would disallow or that could cause issues?
-                    //Logging.logDebug("Test get accounts");
                     GetAccountsRequest request = new GetAccountsRequest(text_wildcard);
                     request.genGenericRequest().writeToStream(connection);
                     Response responses = Response.genResponse(connection);
@@ -172,13 +165,8 @@ public class Client {
                     }
                 } else if (method == API.GET_UNDELIVERED_MESSAGES){
                     String username = "";
-                    //System.out.println("Specify the username of the account to deliver undelivered messages to.");
-                    //username = inputReader.nextLine();
-                    //System.out.println("Username: " + username);
                     username = client.getUsername();
                     Logging.logService("Delivering undelivered messages to: " + username);
-                    
-                    //Logging.logDebug("Test get undelivered messages");
                     GetUndeliveredMessagesRequest request = new GetUndeliveredMessagesRequest(username);
                     request.genGenericRequest().writeToStream(connection);
                     Response responses = Response.genResponse(connection);
@@ -186,12 +174,8 @@ public class Client {
                         System.out.println("[RESPONSE] " + response);
                     }
                 } else if (method ==API.DELETE_ACCOUNT) {
-                    // Question: If the user is logged in, do we want to ask for username?
                     username = client.getUsername();
                     System.out.println("Deleting the account associated to the username: " + username);
-                    //username = inputReader.nextLine();
-                    //System.out.println("Username: " + username);
-                    //Logging.logDebug("Test delete account");
                     DeleteAccountRequest request = new DeleteAccountRequest(username);
                     request.genGenericRequest().writeToStream(connection);
                     Response responses = Response.genResponse(connection);
