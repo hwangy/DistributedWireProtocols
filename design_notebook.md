@@ -249,3 +249,7 @@ server to know how many arguments it'll be receiving without being told.
 We've realized that the username needs to be set for many of the methods to work, on the client side.
 As a result, we have added the `username` field to many of the requests, and the client will only
 allow methods other than `CREATE_USER` to be called if `username` is set.
+
+We also realized we need to treat messages and API calls separately; we don't want the client to
+mistake a message as a response to a request. Thus, we are augmenting our wire protocol to specify
+whether it corresponds to a message or API response.
