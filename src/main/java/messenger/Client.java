@@ -85,11 +85,8 @@ public class Client {
                     // throw an exception?
                     System.out.println("Please enter a number between 1 and 6.");
                     continue;
-                } //else if (choice == 0) {
-                    //inputReader.close();
-                   // break;
-                //}
-
+                } 
+                
                 API method;
                 try {
                     method = API.fromInt(choice);
@@ -100,19 +97,19 @@ public class Client {
                 }
 
                 // The user should only be allowed to select a method
-                // besides `CREATE_ACCOUNT` or `LOGIN` if the username is set.
+                // `CREATE_ACCOUNT` or `LOGIN` if the username is not set.
                 if (method != API.CREATE_ACCOUNT && method != API.LOGIN && username == null) {
                     Logging.logService("Please first create a username or log in, by selecting option "
                             + API.CREATE_ACCOUNT.getIdentifier() + " or " + API.LOGIN.getIdentifier());
                     continue;
                 }
 
-                System.out.println("You have chosen option: " + choice);
+                Logging.logService("You have chosen option: " + choice);
                 if (method == API.LOGOUT) {
                     client.getUsername();
-                    System.out.println("Logging out of the account associated to the username: " + username);
+                    Logging.logService("Logging out of the account associated to the username: " + username);
 
-                    System.out.println("Attempting to log out...");
+                    Logging.logService("Attempting to log out...");
                     LogoutRequest request = new LogoutRequest(username);
                     request.genGenericRequest().writeToStream(connection);
                     Response responses = Response.genResponse(connection);
@@ -126,12 +123,12 @@ public class Client {
                     break;
 
                 } else if (method == API.CREATE_ACCOUNT) {
-                    System.out.println("Pick your username.");
+                    Logging.logService("Pick your username.");
                     username = inputReader.nextLine();
-                    System.out.println("Username: " + username);
+                    Logging.logService("Username: " + username);
 
                     //Logging.logDebug("Testing create user");
-                    System.out.println("Attempting to create a new account...");
+                    Logging.logService("Attempting to create a new account...");
                     CreateAccountRequest request = new CreateAccountRequest(username);
                     request.genGenericRequest().writeToStream(connection);
                     Response responses = Response.genResponse(connection);
@@ -149,7 +146,7 @@ public class Client {
                     launchMessageReceiver();
                 } else if (method == API.GET_ACCOUNTS){
                     String text_wildcard = "";
-                    System.out.println("Optionally, specificy a text wildcard. Else press enter.");
+                    Logging.logService("Optionally, specificy a text wildcard. Else press enter.");
                     text_wildcard = inputReader.nextLine();
 
                     if(text_wildcard.equals("")){
@@ -172,14 +169,14 @@ public class Client {
                     // Do we need to handle case of empty message?
                     String recipient = "";
                     String message = "";
-                    System.out.println("Pick your recipient.");
+                    Logging.logService("Pick your recipient.");
                     recipient = inputReader.nextLine();
                     // Maybe check with server if it's a real recipient first?
-                    System.out.println("Recipient: " + recipient);
+                    Logging.logService("Recipient: " + recipient);
 
-                    System.out.println("Specify your message.");
+                    Logging.logService("Specify your message.");
                     message = inputReader.nextLine();
-                    System.out.println("Message: " + message);
+                    Logging.logService("Message: " + message);
                     // Is it ok to only handle 1-line messages?
                     username = client.getUsername();
 
@@ -195,7 +192,7 @@ public class Client {
                     //username = inputReader.nextLine();
                     //System.out.println("Username: " + username);
                     username = client.getUsername();
-                    System.out.println("Delivering undelivered messages to: " + username);
+                    Logging.logService("Delivering undelivered messages to: " + username);
                     
                     //Logging.logDebug("Test get undelivered messages");
                     GetUndeliveredMessagesRequest request = new GetUndeliveredMessagesRequest(username);
@@ -221,11 +218,11 @@ public class Client {
                     StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
                     client.logoutAPI(statusResponses);
                 } else if (method == API.LOGIN) {
-                    System.out.println("Select the username.");
+                    Logging.logService("Select the username.");
                     username = inputReader.nextLine();
-                    System.out.println("Username: " + username);
+                    Logging.logService("Username: " + username);
 
-                    System.out.println("Attempting to log in...");
+                    Logging.logService("Attempting to log in...");
                     LoginRequest request = new LoginRequest(username);
                     request.genGenericRequest().writeToStream(connection);
                     Response responses = Response.genResponse(connection);
