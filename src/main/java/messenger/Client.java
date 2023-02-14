@@ -107,8 +107,8 @@ public class Client {
                         System.out.println("[RESPONSE] " + response);
                     }
 
-                    // If acceptable response (change to account for this)
-                    //client.setUsername(null);
+                    StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
+                    client.logoutAPI(statusResponses);
                     inputReader.close();
                     break;
 
@@ -127,8 +127,7 @@ public class Client {
                     }
 
                     // Have message for if username already attached to account.
-                    // If acceptable response (change to account for this)
-                    //client.setUsername(username);
+
                     LoginRequest login_request = new LoginRequest(username);
                     StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
                     client.loginAPI(login_request, statusResponses);
@@ -204,8 +203,8 @@ public class Client {
                         System.out.println("[RESPONSE] " + response);
                     }
 
-                    // If successful (change to account for this)
-                   // client.setUsername(null);
+                    StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
+                    client.logoutAPI(statusResponses);
                 } else if (method == API.LOGIN) {
                     System.out.println("Select the username.");
                     username = inputReader.nextLine();
