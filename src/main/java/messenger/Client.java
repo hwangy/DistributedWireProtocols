@@ -46,7 +46,7 @@ public class Client {
 
             String options = "Pick an option:\n" +
                     "0. Exit (and log-out).\n" +
-                    "1. Create an account (and log-in). You must supply a unique user name.\n" +
+                    "1. Create an account (and log-in). You must supply a unique user name (case-sensitive).\n" +
                     "2. List accounts (or a subset of the accounts, by text wildcard)\n" +
                     "3. Send a message to a recipient.\n" +
                     "4. Deliver undelivered messages to a particular user.\n" +
