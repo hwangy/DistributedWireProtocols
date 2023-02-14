@@ -31,12 +31,13 @@ public class Client {
             //Socket s=new Socket("10.250.94.79",6666);
 
             String options = "Pick an option:\n" +
+                    "0. Exit (log out)." +
                     "1. Create an account. You must supply a unique user name.\n" +
                     "2. List accounts (or a subset of the accounts, by text wildcard)\n" +
                     "3. Send a message to a recipient.\n" +
                     "4. Deliver undelivered messages to a particular user.\n" +
                     "5. Delete an account. If you attempt to delete an account that contains undelivered message, (ADD HERE)\n" +
-                    "6. Exit (log out)";
+                    "6. Log in to an existing account.\n";
 
             Scanner inputReader = new Scanner(System.in);
 
@@ -57,12 +58,19 @@ public class Client {
 
                 System.out.println(options);
                 
-                choice = inputReader.nextInt();
-                if (choice < 1|| choice > 6) {
+                try {
+                    choice = Integer.parseInt(inputReader.nextLine());
+                } catch (NumberFormatException e) {
+                    // Invalid choice selected.
+                    Logging.logService("Invalid choice selected, please try again.");
+                    continue;
+                }
+               
+                if (choice < 0|| choice > 6) {
                     // throw an exception?
                     System.out.println("Please enter a number between 1 and 6.");
                     continue;
-                } else if (choice == 6) {
+                } else if (choice == 0) {
                     inputReader.close();
                     break;
                 }
@@ -79,15 +87,28 @@ public class Client {
                 // The user should only be allowed to select a method
                 // besides `CREATE_ACCOUNT` if the username is set.
                 if (method != API.CREATE_ACCOUNT && username == null) {
-                    Logging.logService("Please first create a username, by selecting option "
-                            + API.CREATE_ACCOUNT.getIdentifier());
+                    Logging.logService("Please first create a username or log in, by selecting option "
+                            + API.CREATE_ACCOUNT.getIdentifier() + " or " + API.LOGIN.getIdentifier());
                     continue;
                 }
 
                 System.out.println("You have chosen option: " + choice);
-                if (method == API.CREATE_ACCOUNT) {
+                if (method == API.LOGIN) {
+                    System.out.println("Select the username.");
+                    username = inputReader.nextLine();
+                    System.out.println("Username: " + username);
+
+                    System.out.println("Attempting to log in...");
+                    LoginRequest request = new LoginRequest(username);
+                    request.genGenericRequest().writeToStream(connection);
+                    Response responses = Response.genResponse(connection);
+                    for (String response : responses.getResponses()) {
+                        System.out.println("[RESPONSE] " + response);
+                    }
+
+                } else if (method == API.CREATE_ACCOUNT) {
                     System.out.println("Pick your username.");
-                    username = inputReader.next();
+                    username = inputReader.nextLine();
                     System.out.println("Username: " + username);
 
                     //Logging.logDebug("Testing create user");
@@ -105,7 +126,7 @@ public class Client {
                 } else if (method == API.GET_ACCOUNTS){
                     String text_wildcard = "";
                     System.out.println("Optionally, specificy a text wildcard. Else press enter.");
-                    text_wildcard = inputReader.next();
+                    text_wildcard = inputReader.nextLine();
 
                     if(text_wildcard.equals("")){
                         System.out.println("Proceeding with no wildcard.");
@@ -128,12 +149,12 @@ public class Client {
                     String recipient = "";
                     String message = "";
                     System.out.println("Pick your recipient.");
-                    recipient = inputReader.next();
+                    recipient = inputReader.nextLine();
                     // Maybe check with server if it's a real recipient first?
                     System.out.println("Recipient: " + recipient);
 
                     System.out.println("Specify your message.");
-                    message = inputReader.next();
+                    message = inputReader.nextLine();
                     System.out.println("Message: " + message);
                     // Is it ok to only handle 1-line messages?
 
@@ -146,7 +167,7 @@ public class Client {
                 } else if (method == API.GET_UNDELIVERED_MESSAGES){
                     String username = "";
                     System.out.println("Specify the username of the account to deliver undelivered messages to.");
-                    username = inputReader.next();
+                    username = inputReader.nextLine();
                     System.out.println("Username: " + username);
                     
                     //Logging.logDebug("Test get undelivered messages");
@@ -160,7 +181,7 @@ public class Client {
                     // Question: If the user is logged in, do we want to ask for username?
                     String username = "";
                     System.out.println("Specify the username of the account to delete.");
-                    username = inputReader.next();
+                    username = inputReader.nextLine();
                     System.out.println("Username: " + username);
                     //Logging.logDebug("Test delete account");
                     DeleteAccountRequest request = new DeleteAccountRequest(username);
