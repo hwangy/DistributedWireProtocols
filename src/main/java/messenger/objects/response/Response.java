@@ -1,6 +1,7 @@
 package messenger.objects.response;
 
 import messenger.network.Connection;
+import messenger.util.Logging;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -48,5 +49,11 @@ public class Response {
             connection.writeString(response);
         }
         connection.flushOutput();
+    }
+
+    public void printResponses() {
+        for (String response : responses) {
+            Logging.logService(response);
+        }
     }
 }

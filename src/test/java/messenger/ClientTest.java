@@ -1,22 +1,35 @@
 package messenger;
 
-import java.util.List;
+import messenger.helper.TestUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 class ClientTest {
+
+    /**
+     * Tests whether the client's `loginAPI` correctly logs in a user.
+     */
     @Test
-    void testList(){
-        System.out.println("This test method should be run");
-        List mockedList = Mockito.mock(List.class);
-        // or even simpler with Mockito 4.10.0+
-        // List mockedList = mock();
+    void testLogin() {
+        ClientCore client = new ClientCore();
+        // Starts off not logged in.
+        Assertions.assertFalse(client.isLoggedIn());
 
-        // using mock object - it does not throw any "unexpected interaction" exception
-        mockedList.add("one");
-        mockedList.clear();
-
-        // selective, explicit, highly readable verification
-        Mockito.verify(mockedList).add("one");
-        Mockito.verify(mockedList).clear();
+        client.loginAPI(TestUtils.testLoginRequest(TestUtils.testUser),
+                TestUtils.testSuccessfulStatusMessageResponse());
+        // Is logged in after login request is executed.
+        Assertions.assertTrue(client.isLoggedIn());
     }
+
+    @Test
+    void testLogout() {
+        ClientCore client = new ClientCore();
+        client.loginAPI(TestUtils.testLoginRequest(TestUtils.testUser),
+                TestUtils.testSuccessfulStatusMessageResponse());
+        // Should be logged in
+        Assertions.assertTrue(client.isLoggedIn());
+
+        client.logoutAPI(TestUtils.testSuccessfulStatusMessageResponse());
+        Assertions.assertFalse(client.isLoggedIn());
+    }
+
 }

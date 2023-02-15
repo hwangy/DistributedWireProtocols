@@ -11,11 +11,20 @@ public class ClientCore {
     private String username;
 
     public ClientCore() {
-       this.username = "";
+        this.username = null;
     }
 
     public String getUsername() {
         return this.username;
+    }
+
+    /**
+     * Checks if a user is logged in, by verifying that
+     * the username field is set.
+     * @return  True if the user is logged in, false otherwise.
+     */
+    public Boolean isLoggedIn() {
+        return this.username != null;
     }
 
     /* If the login response tells us that the server has succeeded in logging in, 

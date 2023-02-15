@@ -37,8 +37,11 @@ public class Client {
         Scanner inputReader = new Scanner(System.in);
 
         // Get server IP address from user.
-        System.out.println("Enter the IP address of the server you wish to connect to:");
+        System.out.println("Enter the IP address of the server (leave blank for `localhost`).");
         String address = inputReader.nextLine();
+        if (address == "") {
+            address = "localhost";
+        }
 
         try {
             Socket socket = new Socket(address, 6666);
@@ -58,152 +61,130 @@ public class Client {
             int choice = -1;
             while (true) {
                 System.out.println(options);
-                
-                try {
-                    choice = Integer.parseInt(inputReader.nextLine());
-                } catch (NumberFormatException e) {
-                    // Invalid choice selected.
-                    Logging.logService("Invalid choice selected, please try again.");
-                    continue;
-                }
-               
-                if (choice < 0|| choice > 6) {
-                    System.out.println("Please enter a number between 1 and 6.");
-                    continue;
-                } 
-                
+
+                // Get desired API call from user
                 API method;
                 try {
+                    choice = Integer.parseInt(inputReader.nextLine());
                     method = API.fromInt(choice);
-                } catch (APIException ex) {
+                    Logging.logService("You have chosen option: " + method.toString());
+                } catch (NumberFormatException e) {
                     // Invalid choice selected.
-                    Logging.logService("Invalid choice selected, please try again.");
+                    Logging.logService("Option must be an integer (between 0 and 6).");
                     continue;
                 }
 
-                // The user should only be allowed to select a method
-                // `CREATE_ACCOUNT` or `LOGIN` if the username is not set.
-                if (method != API.CREATE_ACCOUNT && method != API.LOGIN && username == null) {
-                    Logging.logService("Please first create a username or log in, by selecting option "
-                            + API.CREATE_ACCOUNT.getIdentifier() + " or " + API.LOGIN.getIdentifier());
-                    continue;
+                String username = client.getUsername();
+                if (username == null) {
+                    // The user should only be allowed to select a method
+                    // `CREATE_ACCOUNT` or `LOGIN` if the username is not set.
+                    if (method != API.CREATE_ACCOUNT && method != API.LOGIN) {
+                        Logging.logService("Please first create a username or log in, by selecting option "
+                                + API.CREATE_ACCOUNT.getIdentifier() + " or " + API.LOGIN.getIdentifier());
+                    } else {
+                        LoginRequest loginRequest;
+                        StatusMessageResponse statusResponse;
+                        if (method == API.CREATE_ACCOUNT) {
+                            Logging.logService("Pick your username.");
+                            String localUsername = inputReader.nextLine();
+                            CreateAccountRequest request = new CreateAccountRequest(localUsername);
+                            request.genGenericRequest().writeToStream(connection);
+                            Response responses = Response.genResponse(connection);
+                            responses.printResponses();
+
+                            loginRequest = new LoginRequest(localUsername);
+                            statusResponse = new StatusMessageResponse(responses);
+                        } else {
+                            // We always have method == API.LOGIN in this case.
+                            Logging.logService("Select the username.");
+                            username = inputReader.nextLine();
+
+                            Logging.logService("Attempting to log in...");
+                            loginRequest = new LoginRequest(username);
+                            loginRequest.genGenericRequest().writeToStream(connection);
+                            Response response = Response.genResponse(connection);
+                            response.printResponses();
+
+                            statusResponse = new StatusMessageResponse(response);
+                        }
+
+                        // Set status to logged in.
+                        client.loginAPI(loginRequest, statusResponse);
+                        // Begin mesage receiver
+                        messageConnection = launchMessageReceiver(address);
+                    }
+                } else {
+                    // Username is already set and the user is logged in.
+                    if (method == API.CREATE_ACCOUNT || method == API.LOGIN) {
+                        Logging.logService("You are already logged in as " + username + ". " +
+                                "You may only create an account or login from a un-logged-in state.");
+                    } else if (method == API.LOGOUT) {
+                        Logging.logService("Logging out of the account associated to the username: " +
+                                client.getUsername());
+
+                        LogoutRequest request = new LogoutRequest(username);
+                        request.genGenericRequest().writeToStream(connection);
+                        Response responses = Response.genResponse(connection);
+                        for (String response : responses.getResponses()) {
+                            System.out.println("[RESPONSE] " + response);
+                        }
+
+                        StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
+                        client.logoutAPI(statusResponses);
+                        inputReader.close();
+                        break;
+
+                    } else if (method == API.GET_ACCOUNTS){
+                        String text_wildcard = "";
+                        Logging.logService("Optionally, specify a text (regex) wildcard. Else press enter.");
+                        text_wildcard = inputReader.nextLine();
+
+                        if(text_wildcard.equals("")){
+                            System.out.println("Proceeding with no wildcard.");
+                        } else{
+                            System.out.println("Text wildcard: " + text_wildcard);
+                        }
+
+                        // Make sure to handle case of text wildcard empty (search everything) or nonempty.
+                        // And are there text wildcards we would disallow or that could cause issues?
+                        GetAccountsRequest request = new GetAccountsRequest(text_wildcard);
+                        request.genGenericRequest().writeToStream(connection);
+                        Response responses = Response.genResponse(connection);
+                        responses.printResponses();
+                    } else if (method == API.SEND_MESSAGE) {
+                        // Do we need to handle case of empty message?
+                        String recipient = "";
+                        String message = "";
+                        Logging.logService("Pick your recipient.");
+                        recipient = inputReader.nextLine();
+                        // Maybe check with server if it's a real recipient first?
+
+                        Logging.logService("Specify your message.");
+                        message = inputReader.nextLine();
+
+                        SendMessageRequest request = new SendMessageRequest(username, recipient, message);
+                        request.genGenericRequest().writeToStream(connection);
+                        Response responses = Response.genResponse(connection);
+                        for (String response : responses.getResponses()) {
+                            System.out.println("[RESPONSE] " + response);
+                        }
+                    } else if (method == API.GET_UNDELIVERED_MESSAGES){
+                        Logging.logService("Delivering undelivered messages to: " + username);
+                        GetUndeliveredMessagesRequest request = new GetUndeliveredMessagesRequest(username);
+                        request.genGenericRequest().writeToStream(connection);
+                        Response responses = Response.genResponse(connection);
+                        responses.printResponses();
+                    } else if (method ==API.DELETE_ACCOUNT) {
+                        System.out.println("Deleting the account associated to the username: " + username);
+                        DeleteAccountRequest request = new DeleteAccountRequest(username);
+                        request.genGenericRequest().writeToStream(connection);
+                        Response responses = Response.genResponse(connection);
+                        responses.printResponses();
+
+                        StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
+                        client.logoutAPI(statusResponses);
+                    }
                 }
-
-                Logging.logService("You have chosen option: " + choice);
-                if (method == API.LOGOUT) {
-                    client.getUsername();
-                    Logging.logService("Logging out of the account associated to the username: " + username);
-
-                    Logging.logService("Attempting to log out...");
-                    LogoutRequest request = new LogoutRequest(username);
-                    request.genGenericRequest().writeToStream(connection);
-                    Response responses = Response.genResponse(connection);
-                    for (String response : responses.getResponses()) {
-                        System.out.println("[RESPONSE] " + response);
-                    }
-
-                    StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
-                    client.logoutAPI(statusResponses);
-                    inputReader.close();
-                    break;
-
-                } else if (method == API.CREATE_ACCOUNT) {
-                    Logging.logService("Pick your username.");
-                    username = inputReader.nextLine();
-                    Logging.logService("Username: " + username);
-                    Logging.logService("Attempting to create a new account...");
-                    CreateAccountRequest request = new CreateAccountRequest(username);
-                    request.genGenericRequest().writeToStream(connection);
-                    Response responses = Response.genResponse(connection);
-                    for (String response : responses.getResponses()) {
-                        System.out.println("[RESPONSE] " + response);
-                    }
-
-                    LoginRequest login_request = new LoginRequest(username);
-                    StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
-                    client.loginAPI(login_request, statusResponses);
-
-                    messageConnection = launchMessageReceiver(address);
-                } else if (method == API.GET_ACCOUNTS){
-                    String text_wildcard = "";
-                    Logging.logService("Optionally, specificy a text wildcard. Else press enter.");
-                    text_wildcard = inputReader.nextLine();
-
-                    if(text_wildcard.equals("")){
-                        System.out.println("Proceeding with no wildcard.");
-                    } else{
-                        System.out.println("Text wildcard: " + text_wildcard);
-                    } 
-                    
-                    // Make sure to handle case of text wildcard empty (search everything) or nonempty.
-                    // And are there text wildcards we would disallow or that could cause issues?
-                    GetAccountsRequest request = new GetAccountsRequest(text_wildcard);
-                    request.genGenericRequest().writeToStream(connection);
-                    Response responses = Response.genResponse(connection);
-                    for (String response : responses.getResponses()) {
-                        System.out.println("[RESPONSE] " + response);
-                    }
-                } else if (method == API.SEND_MESSAGE) {
-                    // Do we need to handle case of empty message?
-                    String recipient = "";
-                    String message = "";
-                    Logging.logService("Pick your recipient.");
-                    recipient = inputReader.nextLine();
-                    // Maybe check with server if it's a real recipient first?
-                    Logging.logService("Recipient: " + recipient);
-
-                    Logging.logService("Specify your message.");
-                    message = inputReader.nextLine();
-                    Logging.logService("Message: " + message);
-                    username = client.getUsername();
-
-                    SendMessageRequest request = new SendMessageRequest(username, recipient, message);
-                    request.genGenericRequest().writeToStream(connection);
-                    Response responses = Response.genResponse(connection);
-                    for (String response : responses.getResponses()) {
-                        System.out.println("[RESPONSE] " + response);
-                    }
-                } else if (method == API.GET_UNDELIVERED_MESSAGES){
-                    String username = "";
-                    username = client.getUsername();
-                    Logging.logService("Delivering undelivered messages to: " + username);
-                    GetUndeliveredMessagesRequest request = new GetUndeliveredMessagesRequest(username);
-                    request.genGenericRequest().writeToStream(connection);
-                    Response responses = Response.genResponse(connection);
-                    for (String response : responses.getResponses()) {
-                        System.out.println("[RESPONSE] " + response);
-                    }
-                } else if (method ==API.DELETE_ACCOUNT) {
-                    username = client.getUsername();
-                    System.out.println("Deleting the account associated to the username: " + username);
-                    DeleteAccountRequest request = new DeleteAccountRequest(username);
-                    request.genGenericRequest().writeToStream(connection);
-                    Response responses = Response.genResponse(connection);
-                    for (String response : responses.getResponses()) {
-                        System.out.println("[RESPONSE] " + response);
-                    }
-
-                    StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
-                    client.logoutAPI(statusResponses);
-                } else if (method == API.LOGIN) {
-                    Logging.logService("Select the username.");
-                    username = inputReader.nextLine();
-                    Logging.logService("Username: " + username);
-
-                    Logging.logService("Attempting to log in...");
-                    LoginRequest request = new LoginRequest(username);
-                    request.genGenericRequest().writeToStream(connection);
-                    Response responses = Response.genResponse(connection);
-                    for (String response : responses.getResponses()) {
-                        System.out.println("[RESPONSE] " + response);
-                    }
-
-                    StatusMessageResponse statusResponses = new StatusMessageResponse(responses);
-                    client.loginAPI(request, statusResponses);
-
-                    messageConnection = launchMessageReceiver(address);
-                }
-
             }
             if (messageConnection != null) {
                 messageConnection.close();
