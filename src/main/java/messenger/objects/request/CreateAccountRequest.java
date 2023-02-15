@@ -3,6 +3,9 @@ package messenger.objects.request;
 import messenger.api.API;
 import messenger.api.APIException;
 
+/**
+ * Request object for CreateAccount API call
+ */
 public class CreateAccountRequest extends SingleArgumentRequestWithUsername {
     public CreateAccountRequest(String username) {
         super(username);

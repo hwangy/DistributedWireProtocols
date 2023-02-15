@@ -102,6 +102,10 @@ public class TestUtils {
         return new GetUndeliveredMessagesRequest(testUser);
     }
 
+    /**
+     * A test request for logging out `testUser`.
+     * @return  A LogoutRequest
+     */
     public static LogoutRequest testLogoutTestUser() {
         return new LogoutRequest(testUser);
     }

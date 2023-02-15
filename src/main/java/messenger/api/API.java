@@ -27,6 +27,13 @@ public enum API {
         this.identifier = identifier;
     }
 
+    /**
+     * Create an API enum from an integer identifier.
+     * @param identifier        A numerical identifier for an API call
+     * @return                  The corresponding API enum
+     * @throws APIException     Thrown if the identifier does not correspond to
+     *                          an API call.
+     */
     public static API fromInt(int identifier) throws APIException {
         if (!intToAPI.containsKey(identifier)) {
             throw new APIException("Identifier " + identifier + " does not correspond" +
@@ -35,6 +42,10 @@ public enum API {
         return intToAPI.get(identifier);
     }
 
+    /**
+     * Returns the integer identifier.
+     * @return  The identifier for the enum.
+     */
     public int getIdentifier() {
         return identifier;
     }

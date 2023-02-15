@@ -41,6 +41,11 @@ public class Message extends Object {
         this.delivered_timestamp = delivered_timestamp;
     }
 
+    /**
+     * Returns the message as a list of strings. Used for
+     * converting the message into a response.
+     * @return  A list of Strings encoding the message.
+     */
     public List<String> asStringList() {
         return Arrays.asList(
                 timestamp.toString(),
@@ -56,6 +61,13 @@ public class Message extends Object {
         return message;
     }
 
+    /**
+     * Generate a message from the network. This message is blocking
+     * and will block until there is data to be read over the Conneciton.
+     * @param connection    The connection to read from.
+     * @return              The generated message.
+     * @throws IOException  Thrown on network exception
+     */
     public static Message genMessage(Connection connection) throws IOException {
         Long sentTimestamp = connection.readLong();
         String sender = connection.readString();
@@ -65,6 +77,11 @@ public class Message extends Object {
         return new Message(sentTimestamp, sender, receiver, message);
     }
 
+    /**
+     * Writes a message to the stream over the given Connection.
+     * @param connection    The connection to use to send messages.
+     * @throws IOException  Thrown on network exception.
+     */
     public void writeToStream(Connection connection) throws IOException {
         connection.writeLong(timestamp);
         connection.writeString(sender);

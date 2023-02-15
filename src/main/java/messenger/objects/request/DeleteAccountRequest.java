@@ -3,6 +3,10 @@ package messenger.objects.request;
 import messenger.api.API;
 import messenger.api.APIException;
 
+
+/**
+ * Request object for DeleteAccount API call
+ */
 public class DeleteAccountRequest extends SingleArgumentRequestWithUsername {
 
     public DeleteAccountRequest(String username) {

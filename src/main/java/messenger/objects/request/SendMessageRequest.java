@@ -6,6 +6,10 @@ import messenger.api.APIException;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Request object for SendMessage API call. All messages have a
+ * sender, recepient, and String message.
+ */
 public class SendMessageRequest implements MethodRequestInterface {
     private final String sender;
     private final String recipient;

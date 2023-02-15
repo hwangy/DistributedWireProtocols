@@ -6,6 +6,9 @@ import messenger.api.APIException;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Request object for GetUndeliveredMessages API call
+ */
 public class GetUndeliveredMessagesRequest implements MethodRequestInterface {
     private final String username;
 
@@ -31,6 +34,11 @@ public class GetUndeliveredMessagesRequest implements MethodRequestInterface {
         return new Request(getIdentifier(), Arrays.asList(new String[]{username}));
     }
 
+    /**
+     * Gets the username of the receiver of the
+     * the requested messages.
+     * @return  The username.
+     */
     public String getUsername() {
         return this.username;
     }

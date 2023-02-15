@@ -5,6 +5,10 @@ import messenger.api.APIException;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Abstract class which represents a request with only
+ * a single argument; the username.
+ */
 public abstract class SingleArgumentRequestWithUsername implements MethodRequestInterface {
     private final String username;
 
