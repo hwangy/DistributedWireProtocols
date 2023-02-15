@@ -9,13 +9,25 @@ import messenger.api.APIException;
  */
 public class DeleteAccountRequest extends SingleArgumentRequestWithUsername {
 
+    /**
+     * Specify a DeleteAccountRequest with the given 
+     * username
+     * @param username The username
+     */
     public DeleteAccountRequest(String username) {
         super(username);
     }
 
+    /**
+     * Converts a generic Request (e.g. received by
+     * the server) into a DeleteAccountRequest.
+     * @param request       The generic request.
+     * @throws APIException Thrown on API-level exception.
+     */
     public DeleteAccountRequest(Request request) throws APIException {
         super(request);
     }
+    
     @Override
     public int getIdentifier() {
         return API.DELETE_ACCOUNT.getIdentifier();

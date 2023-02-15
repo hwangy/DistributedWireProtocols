@@ -12,15 +12,27 @@ public class Response {
     private final Boolean success;
     private final List<String> responses;
 
+    /**
+     * Form a Response object with the given
+     * success and responses parameters.
+     * @param success Indicates if there was a success
+     * @param message The responses
+     */
     public Response(Boolean success, List<String> responses) {
         this.success = success;
         this.responses = responses;
     }
 
+    /**
+     * Get the indicator of success of the Response
+     */
     public Boolean isSuccessful() {
         return success;
     }
 
+    /**
+     * Get the responses of the Response
+     */
     public List<String> getResponses() {
         return responses;
     }
@@ -42,6 +54,10 @@ public class Response {
         return new Response(success, responses);
     }
 
+    /**
+     * Write to stream corresponding to the connection object
+     * @input connection    A connection object to write to
+     */
     public void writeToStream(Connection connection) throws IOException {
         connection.writeInt(success ? 1 : 0);
         connection.writeInt(responses.size());
@@ -51,6 +67,9 @@ public class Response {
         connection.flushOutput();
     }
 
+    /**
+     * Print the responses
+     */
     public void printResponses() {
         for (String response : responses) {
             Logging.logService(response);

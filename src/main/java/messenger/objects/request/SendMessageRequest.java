@@ -15,12 +15,25 @@ public class SendMessageRequest implements MethodRequestInterface {
     private final String recipient;
     private final String message;
 
+    /**
+     * Specify a SendMessageRequest with the given 
+     * sender, recipient, and message
+     * @param sender The sender
+     * @param recipient The recipient
+     * @param message The message
+     */
     public SendMessageRequest(String sender, String recipient, String message) {
         this.sender = sender;
         this.recipient = recipient;
         this.message = message;
     }
 
+    /**
+     * Converts a generic Request (e.g. received by
+     * the server) into a SendMessageRequest.
+     * @param request       The generic request.
+     * @throws APIException Thrown on API-level exception.
+     */
     public SendMessageRequest(Request request) throws APIException {
         List<String> args = request.getArguments();
         if (args.size() != 3) {
@@ -41,14 +54,26 @@ public class SendMessageRequest implements MethodRequestInterface {
         return new Request(getIdentifier(), Arrays.asList(sender, recipient, message));
     }
 
+    /**
+     * Fetch the sender associated with this request.
+     * @return The sender
+     */
     public String getSender() {
         return this.sender;
     }
 
+    /**
+     * Fetch the recipient associated with this request.
+     * @return The recipient
+     */
     public String getRecipient() {
         return this.recipient;
     }
 
+    /**
+     * Fetch the message associated with this request.
+     * @return The message
+     */
     public String getMessage() {
         return this.message;
     }

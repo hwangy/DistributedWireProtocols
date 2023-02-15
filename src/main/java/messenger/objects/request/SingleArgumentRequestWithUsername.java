@@ -7,15 +7,26 @@ import java.util.List;
 
 /**
  * Abstract class which represents a request with only
- * a single argument; the username.
+ * a single argument: the username.
  */
 public abstract class SingleArgumentRequestWithUsername implements MethodRequestInterface {
     private final String username;
 
+    /**
+     * Specify a SingleArgumentRequestWithUsername with the given 
+     * username.
+     * @param username The username.
+     */
     public SingleArgumentRequestWithUsername(String username) {
         this.username = username;
     }
 
+    /**
+     * Converts a generic Request (e.g. received by
+     * the server) into a SingleArgumentRequestWithUsername.
+     * @param request       The generic request.
+     * @throws APIException Thrown on API-level exception.
+     */
     public SingleArgumentRequestWithUsername(Request request) throws APIException {
         List<String> args = request.getArguments();
         if (args.size() != 1) {
@@ -30,6 +41,10 @@ public abstract class SingleArgumentRequestWithUsername implements MethodRequest
         return new Request(getIdentifier(), Arrays.asList(username));
     }
 
+    /**
+     * Fetch the username associated with this request.
+     * @return The username.
+     */
     public String getUsername() {
         return this.username;
     }

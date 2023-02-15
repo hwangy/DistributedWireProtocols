@@ -3,19 +3,36 @@ package messenger.objects.response;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Response object for ListMessageResponse API call
+ */
 public class ListMessageResponse<T extends Object> implements MethodResponseInterface {
     private final Boolean success;
     private final List<T> message;
 
+    /**
+     * Specify a ListMessageResponse with the given
+     * success and message parameters.
+     * @param success Indicates if there was a success
+     * @param message The message
+     */
     public ListMessageResponse(Boolean success, List<T> message) {
         this.success = success;
         this.message = message;
     }
 
+    /**
+     * Fetch the message associated with this response.
+     * @return The message
+     */
     public List<T> getMessages() {
         return message;
     }
 
+    /**
+     * Fetch the success indicator associated with this response.
+     * @return The success indicator
+     */
     public Boolean isSuccessful() {
         return success;
     }

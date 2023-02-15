@@ -12,10 +12,21 @@ import java.util.List;
 public class GetUndeliveredMessagesRequest implements MethodRequestInterface {
     private final String username;
 
+    /**
+     * Specify a GetUndeliveredMessagesRequest with the given 
+     * username
+     * @param username The username
+     */
     public GetUndeliveredMessagesRequest(String username) {
         this.username = username;
     }
 
+    /**
+     * Converts a generic Request (e.g. received by
+     * the server) into a GetUndeliveredMessagesRequest.
+     * @param request       The generic request.
+     * @throws APIException Thrown on API-level exception.
+     */
     public GetUndeliveredMessagesRequest(Request request) throws APIException {
         List<String> args = request.getArguments();
         if (args.size() != 1) {
@@ -29,6 +40,7 @@ public class GetUndeliveredMessagesRequest implements MethodRequestInterface {
     public int getIdentifier() {
         return API.GET_UNDELIVERED_MESSAGES.getIdentifier();
     }
+    
     @Override
     public Request genGenericRequest() {
         return new Request(getIdentifier(), Arrays.asList(new String[]{username}));

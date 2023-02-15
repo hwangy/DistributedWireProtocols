@@ -6,7 +6,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Response object for GetUndeliveredMessages API call
+ */
 public class GetUndeliveredMessagesResponse extends ListMessageResponse<Message> {
+    
+    /**
+     * Specify a GetUndeliveredMessagesResponse with the given
+     * success and messages parameters.
+     * @param success Indicates if there was a success
+     * @param messages The messages
+     */
     public GetUndeliveredMessagesResponse(Boolean success, List<Message> messages) {
         super(success, messages);
     }
