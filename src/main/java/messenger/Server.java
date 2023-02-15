@@ -67,7 +67,6 @@ public class Server {
 
         private String username = null;
 
-
         /**
          * Create a ClientHandler on a given Connection and ServerCore.
          *
@@ -80,87 +79,86 @@ public class Server {
             this.messageSocket = messageSocket;
         }
 
+        /**
+         * Launches a `MessageHandler` thread which manages sending users
+         * addressed towards the logged-in user.
+         * @param username      The username to be associated with handler.
+         * @throws IOException  Thrown if the connection fails for any reason.
+         */
         public void launchMessageDispatcher(String username) throws IOException {
-            try {
-                Socket socket = messageSocket.accept();//establishes connection
-                Connection connection = new Connection(socket);
-                MessageHandler messageHandler = new MessageHandler(connection, server, username);
-                new Thread(messageHandler).start();
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
+            Socket socket = messageSocket.accept();//establishes connection
+            Connection connection = new Connection(socket);
+            MessageHandler messageHandler = new MessageHandler(connection, server, username);
+            new Thread(messageHandler).start();
         }
 
         public void run() {
             try {
                 while (true) {
-                    try {
-                        // Form request from input stream
-                        Request request = Request.genRequest(connection);
+                    // Form request from input stream
+                    Request request = Request.genRequest(connection);
 
-                        try {
-                            // Response object to populate.
-                            MethodResponseInterface response = null;
+                    // Response object to populate.
+                    MethodResponseInterface response = null;
 
-                            // Parse integer into the corresponding API call
-                            API calledMethod = API.fromInt(request.getMethodId());
-                            Logging.logInfo("Processing API call " + calledMethod.toString());
-                            if (calledMethod == API.CREATE_ACCOUNT) {
-                                // Client wants to create a new user
-                                CreateAccountRequest createAccountRequest = new CreateAccountRequest(request);
-                                response = server.createAccountAPI(createAccountRequest);
+                    // Parse integer into the corresponding API call
+                    API calledMethod = API.fromInt(request.getMethodId());
+                    Logging.logInfo("Processing API call " + calledMethod.toString());
+                    if (calledMethod == API.CREATE_ACCOUNT) {
+                        // Client wants to create a new user
+                        CreateAccountRequest createAccountRequest = new CreateAccountRequest(request);
+                        response = server.createAccountAPI(createAccountRequest);
 
-                                // Set username and logged in status
-                                username = createAccountRequest.getUsername();
-                            } else if (calledMethod == API.DELETE_ACCOUNT) {
-                                DeleteAccountRequest deleteAccountRequest = new DeleteAccountRequest(request);
-                                response = server.deleteAccountAPI(deleteAccountRequest);
+                        // Set username and logged in status
+                        username = createAccountRequest.getUsername();
+                    } else if (calledMethod == API.DELETE_ACCOUNT) {
+                        DeleteAccountRequest deleteAccountRequest = new DeleteAccountRequest(request);
+                        response = server.deleteAccountAPI(deleteAccountRequest);
 
-                                username = null;
-                            } else if (calledMethod == API.GET_ACCOUNTS) {
-                                GetAccountsRequest getAccountsRequest = new GetAccountsRequest(request);
-                                response = server.getAccountsAPI(getAccountsRequest);
-                            } else if (calledMethod == API.GET_UNDELIVERED_MESSAGES) {
-                                GetUndeliveredMessagesRequest getUndeliveredMessagesRequest =
-                                        new GetUndeliveredMessagesRequest(request);
-                                response = server.getUndeliveredMessagesAPI(getUndeliveredMessagesRequest);
-                            } else if (calledMethod == API.SEND_MESSAGE) {
-                                SendMessageRequest sendMessageRequest = new SendMessageRequest(request);
-                                response = server.sendMessageAPI(sendMessageRequest);
-                            } else if (calledMethod == API.LOGIN) {
-                                LoginRequest loginRequest = new LoginRequest(request);
-                                response = server.loginUserAPI(loginRequest);
+                        username = null;
+                    } else if (calledMethod == API.GET_ACCOUNTS) {
+                        GetAccountsRequest getAccountsRequest = new GetAccountsRequest(request);
+                        response = server.getAccountsAPI(getAccountsRequest);
+                    } else if (calledMethod == API.GET_UNDELIVERED_MESSAGES) {
+                        GetUndeliveredMessagesRequest getUndeliveredMessagesRequest =
+                                new GetUndeliveredMessagesRequest(request);
+                        response = server.getUndeliveredMessagesAPI(getUndeliveredMessagesRequest);
+                    } else if (calledMethod == API.SEND_MESSAGE) {
+                        SendMessageRequest sendMessageRequest = new SendMessageRequest(request);
+                        response = server.sendMessageAPI(sendMessageRequest);
+                    } else if (calledMethod == API.LOGIN) {
+                        LoginRequest loginRequest = new LoginRequest(request);
+                        response = server.loginUserAPI(loginRequest);
 
-                                username = loginRequest.getUsername();
-                            } else if (calledMethod == API.LOGOUT) {
-                                LogoutRequest logoutRequest = new LogoutRequest(request);
-                                response = server.logoutUserAPI(logoutRequest);
+                        username = loginRequest.getUsername();
+                    } else if (calledMethod == API.LOGOUT) {
+                        LogoutRequest logoutRequest = new LogoutRequest(request);
+                        response = server.logoutUserAPI(logoutRequest);
 
-                                username = null;
-                            }
-                            if (response != null) {
-                                Logging.logService(response.getStringStatus());
-                                response.genGenericResponse().writeToStream(connection);
+                        username = null;
+                    }
+                    if (response != null) {
+                        Logging.logService(response.getStringStatus());
+                        response.genGenericResponse().writeToStream(connection);
 
-                                if ((calledMethod == API.CREATE_ACCOUNT || calledMethod == API.LOGIN) && username != null) {
-                                    launchMessageDispatcher(username);
-                                }
-                            }
-                        } catch (APIException e) {
-                            e.printStackTrace();
+                        if ((calledMethod == API.CREATE_ACCOUNT || calledMethod == API.LOGIN) && username != null) {
+                            launchMessageDispatcher(username);
                         }
-                    } catch (EOFException e) {
-                        Logging.logInfo("Connection closed");
-                        break;
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+                // Connection to client lost.
+                Logging.logInfo("Connection closed");
+            } catch (APIException e) {
+                Logging.logInfo("API Exception encountered (" +
+                        e.getMessage() + "). Dropping connection");
             } finally {
+                // Always try to log out the user if the client handler is
+                // terminated for any reason. Additionally try to clean up
+                // the connection.
                 try {
-                    // Log the user out.
                     if (username != null) server.logoutUser(username);
-
                     connection.close();
                 } catch (IOException e) {
                     e.printStackTrace();

@@ -15,6 +15,7 @@ public class TestUtils {
     public static final String testSecondUser = "testUser2";
     public static final String uniquePrefixUser = "userTest";
     public static final String matchingPrefix = "user.*";
+    public static final String testMessage = "test message";
 
     /**
      * Creates a simple CreateUserRequest
@@ -83,5 +84,25 @@ public class TestUtils {
      */
     public static GetAccountsRequest testGetAccountsMatchUniquePrefix() {
         return new GetAccountsRequest(matchingPrefix);
+    }
+
+    /**
+     * Create a SendMessageRequest to testUser containg the test message.
+     * @return  A SendMessageRequest.
+     */
+    public static SendMessageRequest testSendToTestUser() {
+        return new SendMessageRequest("",testUser,testMessage);
+    }
+
+    /**
+     * Create a test request for undelivered messages to the `testUser`.
+     * @return  A GetUndeliveredMessagesRequest
+     */
+    public static GetUndeliveredMessagesRequest testGetUndeliveredMessagesToTestUser() {
+        return new GetUndeliveredMessagesRequest(testUser);
+    }
+
+    public static LogoutRequest testLogoutTestUser() {
+        return new LogoutRequest(testUser);
     }
 }

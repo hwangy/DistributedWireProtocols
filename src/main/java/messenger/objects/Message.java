@@ -52,6 +52,10 @@ public class Message extends Object {
         return receiver;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
     public static Message genMessage(Connection connection) throws IOException {
         Long sentTimestamp = connection.readLong();
         String sender = connection.readString();

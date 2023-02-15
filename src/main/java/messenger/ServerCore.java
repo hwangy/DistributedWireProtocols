@@ -1,10 +1,8 @@
 package messenger;
 
-import messenger.network.Connection;
 import messenger.objects.Message;
 import messenger.objects.request.*;
 import messenger.objects.response.*;
-import messenger.util.Logging;
 
 import java.util.*;
 
@@ -16,27 +14,16 @@ public class ServerCore {
     private final Set<String> loggedInUsers;
     private final Set<String> allAccounts;
 
-    /**
-     * Maintain a map of logged-in users to their connections,
-     * to facilitate sending messages.
-     */
-    private final Map<String, Connection> loggedInConnections;
-
     public ServerCore() {
        this.sentMessages = new HashMap<>();
        this.queuedMessagesMap = new HashMap<>();
        this.undeliveredMessages = new HashMap<>();
        this.loggedInUsers = new HashSet<>();
        this.allAccounts = new HashSet<>();
-       loggedInConnections = new HashMap<>();
     }
 
     public Set<String> getAccounts() {
         return allAccounts;
-    }
-
-    public void addConnection(String username, Connection connection) {
-        loggedInConnections.put(username, connection);
     }
 
     /**
@@ -45,14 +32,14 @@ public class ServerCore {
      *
      * @param message   Message to be queued.
      */
-    public void queueMessage(Message message) {
+    private void addMessageToList(Map<String, List<Message>> listToAdd, Message message) {
         List<Message> messageList;
         String recepient = message.getRecepient();
-        if (queuedMessagesMap.containsKey(recepient)) {
-            messageList = queuedMessagesMap.get(recepient);
+        if (listToAdd.containsKey(recepient)) {
+            messageList = listToAdd.get(recepient);
         } else {
-            messageList = new ArrayList<Message>();
-            queuedMessagesMap.put(recepient, messageList);
+            messageList = new ArrayList<>();
+            listToAdd.put(recepient, messageList);
         }
         messageList.add(message);
     }
@@ -166,13 +153,20 @@ public class ServerCore {
      */
     public GetUndeliveredMessagesResponse getUndeliveredMessagesAPI(GetUndeliveredMessagesRequest request) {
         String username = request.getUsername();
-        if (queuedMessagesMap.containsKey(username)) {
-            return new GetUndeliveredMessagesResponse(true, queuedMessagesMap.get(username));
+        if (undeliveredMessages.containsKey(username)) {
+            return new GetUndeliveredMessagesResponse(true, undeliveredMessages.get(username));
         } else {
             return new GetUndeliveredMessagesResponse(true, new ArrayList<>());
         }
     }
 
+    /**
+     * Sends a message to a user if the user is logged in, otherwise it
+     * will add it to the `undeliveredMessages` list to be delivered
+     * when the recepient calls `getUndeliveredMessagees`.
+     * @param request   A request specifying the message to be sent, including sender and receiver.
+     * @return          A status of whether the message was delivered or added to undelivered messages.
+     */
     public SendMessageResponse sendMessageAPI(SendMessageRequest request) {
         String sender = request.getSender();
         String recipient = request.getRecipient();
@@ -180,32 +174,31 @@ public class ServerCore {
 
         // Create Message object.
         Message message = new Message(System.currentTimeMillis(), sender, recipient, strMessage);
-        // If the user is logged in, immediately send the message.
         if (loggedInUsers.contains(recipient)) {
-            List<Message> messages;
-            if (queuedMessagesMap.containsKey(recipient)) {
-                messages = queuedMessagesMap.get(recipient);
-            } else {
-                messages = new ArrayList<>();
-                queuedMessagesMap.put(recipient, messages);
-            }
-            messages.add(message);
+            // If the user is logged in, immediately send the message.
+            addMessageToList(queuedMessagesMap, message);
             return new SendMessageResponse(true, "Message sent successfully.");
         } else {
-            List<Message> messages;
-            if (undeliveredMessages.containsKey(recipient)) {
-                messages = undeliveredMessages.get(recipient);
-            } else {
-                messages = new ArrayList<>();
-                undeliveredMessages.put(recipient, messages);
-            }
-            messages.add(message);
+            // Otherwise add to undelivered messages for future delivery
+            addMessageToList(undeliveredMessages, message);
             return new SendMessageResponse(true, "Message queued for delivery.");
         }
     }
 
+    /**
+     * Logs in a given user if the user is not already logged in. If the user
+     * does not exist, the request fails.
+     *
+     * @param request   A request specifying the user to log in.
+     * @return          A status message indicating success or failure.
+     */
     public LoginResponse loginUserAPI(LoginRequest request) {
         String username = request.getUsername();
+        if (!allAccounts.contains(username)) {
+            return new LoginResponse(false, "User " + username + " does not exist, account " +
+                    "must be created before user is logged in.");
+        }
+
         if (loggedInUsers.contains(username)) {
             return new LoginResponse(false, "User " + username + " already logged in.");
         } else {
@@ -214,6 +207,11 @@ public class ServerCore {
         }
     }
 
+    /**
+     * Logs out a given user, if they are logged in.
+     * @param request   A request specifying the user to be logged out.
+     * @return          A status message indicating success or failure.
+     */
     public LogoutResponse logoutUserAPI(LogoutRequest request) {
         String username = request.getUsername();
         if (loggedInUsers.contains(username)) {

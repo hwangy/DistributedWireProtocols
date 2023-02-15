@@ -210,7 +210,7 @@ public class Client {
                     Logging.logInfo(message.toString());
                 }
             } catch (IOException e) {
-                Logging.logInfo("Message receiver service closed.");
+                Logging.logInfo("Message receiver service closed (likely due to loss of connection to server).");
             }
         }
     }
