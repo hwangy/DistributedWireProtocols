@@ -5,6 +5,7 @@ import messenger.api.APIException;
 import messenger.objects.Message;
 import messenger.objects.request.*;
 import messenger.objects.response.MethodResponseInterface;
+import messenger.util.Constants;
 import messenger.util.Logging;
 
 import java.io.*;
@@ -27,14 +28,18 @@ public class Server {
 
         try {
             Logging.logInfo("Starting server...");
-            serverSocket = new ServerSocket(6666);
-            messageSocket = new ServerSocket(7777);
+            // Socket for API calls
+            serverSocket = new ServerSocket(Constants.API_PORT);
+            // Socket for sending messages
+            messageSocket = new ServerSocket(Constants.MESSAGE_PORT);
+
+            // Both should be resuable.
             serverSocket.setReuseAddress(true);
             messageSocket.setReuseAddress(true);
-            Logging.logInfo("Waiting for connection...");
 
+            Logging.logInfo("Waiting for connection...");
             while(true) {
-                Socket socket = serverSocket.accept();//establishes connection
+                Socket socket = serverSocket.accept();
                 Logging.logInfo("New connection established " + socket.getInetAddress().getHostAddress());
                 Connection connection = new Connection(socket);
                 ClientHandler clientHandler = new ClientHandler(connection, server, messageSocket);

@@ -6,6 +6,7 @@ import messenger.api.API;
 import messenger.objects.request.*;
 import messenger.objects.response.Response;
 import messenger.objects.response.StatusMessageResponse;
+import messenger.util.Constants;
 import messenger.util.Logging;
 
 import java.io.IOException;
@@ -13,8 +14,6 @@ import java.net.*;
 import java.util.*;
 
 public class Client {
-
-    private Map<String, ArrayList<Message>> receivedMessages;
 
     private static Connection connection;
     private static Connection messageConnection = null;
@@ -24,8 +23,16 @@ public class Client {
     // set, then only the `createUser` method can be called.
     private static String username = null;
 
+    /**
+     * Launch a MessageReceiver thread which is dedicated to receiving
+     * messages from the server.
+     *
+     * @param address       The IP address of the server
+     * @return              The connection opened for the MessageReceiver
+     * @throws IOException  Thrown on any network exception
+     */
     public static Connection launchMessageReceiver(String address) throws IOException {
-        messageSocket = new Socket(address, 7777);
+        messageSocket = new Socket(address, Constants.MESSAGE_PORT);
         Connection connection = new Connection(messageSocket);
         MessageReceiver receiver = new MessageReceiver(connection);
         new Thread(receiver).start();
@@ -33,6 +40,12 @@ public class Client {
         return connection;
     }
 
+    /**
+     * Handles the main loop of the client which includes asking for the
+     * user for the API call that would like to call, then sending a
+     * message to the server and fetching a response.
+     * @param args  Unused
+     */
     public static void main(String[] args) {
         Scanner inputReader = new Scanner(System.in);
 
@@ -44,7 +57,7 @@ public class Client {
         }
 
         try {
-            Socket socket = new Socket(address, 6666);
+            Socket socket = new Socket(address, Constants.API_PORT);
             Logging.logInfo("Connection established to " + address);
 
             connection = new Connection(socket);
@@ -186,6 +199,8 @@ public class Client {
                     }
                 }
             }
+
+            // Close connections before terminating.
             if (messageConnection != null) {
                 messageConnection.close();
             }
@@ -197,6 +212,11 @@ public class Client {
         }
     }
 
+    /**
+     * The class which handles receiving messages from a server.
+     * Initialized with a Connection, which is then used to listen
+     * for messages.
+     */
     public static class MessageReceiver implements Runnable {
         private final Connection connection;
         public MessageReceiver(Connection connection) {
