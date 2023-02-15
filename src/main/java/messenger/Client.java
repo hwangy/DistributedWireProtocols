@@ -1,4 +1,5 @@
 package messenger;
+
 import messenger.api.APIException;
 import messenger.network.Connection;
 import messenger.objects.*;

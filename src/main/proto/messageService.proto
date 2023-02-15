@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "messenger.grpc";
+option java_outer_classname = "MessengerProto";
+
+package grpc;
+
+service Messenger {
+  rpc CreateAccount (CreateAccountRequest) returns (Status) {}
+}
+
+message Status {
+  bool success = 1;
+  string message = 2;
+}
+
+message CreateAccountRequest {
+  int32 identifier = 1;
+  string username = 2;
+}
