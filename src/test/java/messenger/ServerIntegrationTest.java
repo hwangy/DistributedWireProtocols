@@ -9,6 +9,8 @@ import org.mockito.Mockito;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 import static org.mockito.Mockito.when;
 
@@ -41,6 +43,7 @@ public class ServerIntegrationTest {
                     API.CREATE_ACCOUNT.getIdentifier(),1).thenThrow(EOFException.class);
             // Then the request should specify the username.
             when(connection.readString()).thenReturn(TestUtils.testUser);
+
             Server.ClientHandler clientHandler = new Server.ClientHandler(connection, core, null);
             clientHandler.run();
 

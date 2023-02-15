@@ -86,6 +86,11 @@ public class Server {
          * @throws IOException  Thrown if the connection fails for any reason.
          */
         public void launchMessageDispatcher(String username) throws IOException {
+            // If no message socket has been set, immediately return.
+            if (messageSocket == null) {
+                return;
+            }
+
             Socket socket = messageSocket.accept();//establishes connection
             Connection connection = new Connection(socket);
             MessageHandler messageHandler = new MessageHandler(connection, server, username);

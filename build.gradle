@@ -20,12 +20,6 @@ task(runClient, dependsOn: 'classes', type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 }
 
-task(runExample, dependsOn: 'classes', type: JavaExec) {
-    main = 'messenger.BasicExample'
-    standardInput = System.in
-    classpath = sourceSets.main.runtimeClasspath
-}
-
 test {
     useJUnitPlatform()
     beforeTest { descriptor ->
