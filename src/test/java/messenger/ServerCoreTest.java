@@ -124,7 +124,7 @@ public class ServerCoreTest {
      */
     @Test
     void testSendMessageLoggedIn() {
-        server.loginUserAPI(TestUtils.testLoginRequest(TestUtils.testUser));
+        server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser));
         server.sendMessageAPI(TestUtils.testSendToTestUser());
 
         Optional<List<Message>> messageList = server.getQueuedMessages(TestUtils.testUser);
@@ -153,7 +153,7 @@ public class ServerCoreTest {
     }
 
     /**
-     * Test whether trying to log-in a user which has not been created fails.
+     * Test whether trying to log in a user which has not been created fails.
      */
     @Test
     void testLoginNotCreateUser() {
