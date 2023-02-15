@@ -8,6 +8,12 @@ package grpc;
 
 service Messenger {
   rpc CreateAccount (CreateAccountRequest) returns (Status) {}
+  rpc DeleteAccount (DeleteAccountRequest) returns (Status) {}
+  rpc GetAccounts (GetAccountsRequest) returns (Status) {}
+  rpc GetUndeliveredMessages (GetUndeliveredMessagesRequest) returns (Status) {}
+  rpc SendMessage (SendMessageRequest) returns (Status) {}
+  rpc Login (LoginRequest) returns (Status) {}
+  rpc Logout (LogoutRequest) returns (Status) {}
 }
 
 message Status {
@@ -16,6 +22,38 @@ message Status {
 }
 
 message CreateAccountRequest {
+  int32 identifier = 1;
+  string username = 2;
+}
+
+message DeleteAccountRequest {
+  int32 identifier = 1;
+  string username = 2;
+}
+
+message GetAccountsRequest {
+  int32 identifier = 1;
+  string text_wildcard = 2;
+}
+
+message GetUndeliveredMessagesRequest {
+  int32 identifier = 1;
+  string username = 2;
+}
+
+message SendMessageRequest {
+  int32 identifier = 1;
+  string sender = 2;
+  string recipient = 3;
+  string message = 4;
+}
+
+message LoginRequest {
+  int32 identifier = 1;
+  string username = 2;
+}
+
+message LogoutRequest {
   int32 identifier = 1;
   string username = 2;
 }
