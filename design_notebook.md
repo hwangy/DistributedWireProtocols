@@ -258,3 +258,39 @@ seemed complicated to design, so we went with the following approach.
 > user has logged in, will launch a MessageReceiver thread, listening for incoming messages. The
 > server, also when a user has logged in, will launch a MessageDispatcher thread, which checks 
 > queued messages for those addressed to that specific user, then sends it.
+
+### Login and Logout
+
+We have implemented log-in and log-out methods and objects. On the client side, this helps in keeping track of the username/account that is logged in, and identify when a user is logged in on the client side or not. On the server side, the status of being logged in or not is tracked for each user. 
+
+More specifically, we have added `LoginRequest`, `LogoutRequest`, `LoginResponse`, `LogoutResponse` objects. These simply extend the `SingleArgumentRequestWithUsername` (for the requests) and `StatusMessageResponse` objects  (for the responses).
+
+We have also updated the `ClientCore` object to include a `loginAPI` and `logoutAPI` method. These will help the Client keep track of if a user logged in or out successfully, and will update the username that the Client stores accordingly. If a user is logged in, the Client stores their username. Else the username the Client stores is set to ``null``.
+
+The following are the `loginAPI` and `logoutAPI` methods:
+
+```
+public Boolean loginAPI(LoginRequest request, StatusMessageResponse response) {
+        Boolean success = response.isSuccessful();
+        if (success) {
+            this.username = request.getUsername();
+        } else {
+            Logging.logService("Failed to log in.");
+        }
+        return success;
+    }
+```
+
+``` 
+public Boolean logoutAPI(StatusMessageResponse response) {
+        Boolean success = response.isSuccessful();
+        if(success) {
+            this.username = null;
+        } else {
+            Logging.logService("Failed to log out.");
+        }
+        return success;
+    }
+```
+
+We have made the decision to only allow certain actions if the user is logged in. Namely, the user must either create an account or log into an existing account to call any of the other methods. From our perspective, implementing the log-in and log-out functionality makes logical and practical sense when considering the methods that we implement. With log-in and log-out, sending messages to another account is always done from a logged-in user. Also, delivering undelivered messages to a particular user was interpreted by us to mean that undelivered messages can be delivered to a user who has logged in. Deleting an account should also be done by someone who is logged in.
