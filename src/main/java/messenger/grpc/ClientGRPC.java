@@ -286,26 +286,12 @@ public class ClientGRPC {
                             Logging.logService("Pick your username.");
                             String localUsername = inputReader.nextLine();
                             client.createAccount(localUsername);
-                            //CreateAccountRequest request = CreateAccountRequest.newBuilder().setUsername(localUsername).setIpAddress(address).build();
-                           // LoginReply reply = blockingStub.
-                            
-                            //LoginReply.genResponse(channel);
-                            //Logging.logService(reply)
-                        
                         } else {
                             Logging.logService("Select the username.");
                             username = inputReader.nextLine();
                             Logging.logService("Attempting to log in...");
                             client.login(username);
-
-                            //LoginReply.genResponse(channel);
-                            //loginRequest = LoginRequest.newBuilder().setIpAddress(address).setUsername(username).build();
-                            //do the reply
-                            
                         }
-                        // Set status to logged in.
-                        //client.loginAPI(loginRequest, statusResponse);
-                        // begin message receiver?
                     }
                 } else {
                     // Username is already set and the user is logged in.
@@ -319,13 +305,9 @@ public class ClientGRPC {
                                 localUsername);
 
                         client.logout(localUsername);
-
-                        //LogoutReqest request = LogoutRequest.newBuilder().setConnectionId(1).setUsername(localUsername).build();
-                        // responses
-
-                        //client.core.logoutAPI(statusResponses);
                         inputReader.close();
                         break;
+
                     }  else if (method == API.GET_ACCOUNTS){
                         String text_wildcard = "";
                         Logging.logService("Optionally, specify a text (regex) wildcard. Else press enter.");
@@ -338,10 +320,8 @@ public class ClientGRPC {
                         }
 
                         client.getAccounts(text_wildcard);
-                        //GetAccountsRequest request = GetAccountsRequest.newBuilder().setTextWildcard(text_wildcard).build();
-                        // generate response
+                        
                     } else if (method == API.SEND_MESSAGE) {
-                        // Do we need to handle case of empty message?
                         String recipient = "";
                         String message = "";
                         Logging.logService("Pick your recipient.");
@@ -350,24 +330,15 @@ public class ClientGRPC {
                         Logging.logService("Specify your message.");
                         message = inputReader.nextLine();
                         client.sendMessage(username, recipient, message);
-                       
-                        
-                        //Long timestamp = System.currentTimeMillis();
 
-                        //Message localMessage = Message.newBuilder().setMessage(message)
-                        //    .setSentTimestamp(timestamp).setSender(username).setRecipient(recipient).build();
-                        //SendMessageRequest request = SendMessageRequest.newBuilder().setConnectionId(1).setMessage(localMessage).build();
-                        // responses
                     } else if (method == API.GET_UNDELIVERED_MESSAGES){
                         Logging.logService("Delivering undelivered messages to: " + username);
                         client.getUndeliveredMessages(username);
-                        //GetUndeliveredMessagesRequest request = GetUndeliveredMessagesRequest.newBuilder().setConnectionId(1).setUsername(username).build();
-                        // do the responses
+
                     } else if (method == API.DELETE_ACCOUNT) {
                         Logging.logService("Deleting the account associated to the username: " + username);
                         client.deleteAccount(username);
-                        // DeleteAccountRequest request = DeleteAccountRequest.newBuilder().setConnectionId(1).setUsername(username).build();
-                        // do responses and logout
+
                     }
  
                 }
