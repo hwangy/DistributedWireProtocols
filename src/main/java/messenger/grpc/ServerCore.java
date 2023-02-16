@@ -95,7 +95,7 @@ public class ServerCore {
      *
      * @return  a list of all users.
      */
-    public GetAccountsReply getAccountsAPI(GetAccountsRequest request) {
+    public GetAccountsResponse getAccountsAPI(GetAccountsRequest request) {
         List matches = new ArrayList<String>();
         String regex = request.getTextWildcard();
         if (!regex.isEmpty()) {
@@ -107,10 +107,11 @@ public class ServerCore {
         } else {
             matches.addAll(allAccounts);
         }
-        //return new GetAccountsResponse(true, matches);
-        Logging.logInfo(String.format("Listing accounts associated with text wildcard %s.", regex));
+        return new GetAccountsResponse(true, matches);
+        /*Logging.logInfo(String.format("Listing accounts associated with text wildcard %s.", regex));
         Status status = Status.newBuilder().setSuccess(true).setMessage("Successfully listing accounts.").build();
         return GetAccountsReply.newBuilder().setStatus(status).setAccounts(matches).build();
+        */
     }
 
     /**
