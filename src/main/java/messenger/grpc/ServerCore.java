@@ -235,14 +235,14 @@ public class ServerCore {
             Logging.logInfo(String.format( "User %s does not exist, account must be created before user is logged in.", username));
             Status status = Status.newBuilder().setSuccess(false).setMessage("User " + username + " does not exist, account " +
                 "must be created before user is logged in.").build();
-            return LoginReply.newBuilder().setConnectionId(-1).setStatus(status).build();
+            return LoginReply.newBuilder().setConnectionId(nextUserId).setStatus(status).build();
         }
 
         if (loggedInUsers.contains(username)) {
             //return new LoginResponse(false, "User " + username + " already logged in.");
             Logging.logInfo(String.format( "User %s already logged in.", username));
             Status status = Status.newBuilder().setSuccess(false).setMessage( "User " + username + " already logged in.").build();
-            return LoginReply.newBuilder().setConnectionId(-1).setStatus(status).build();
+            return LoginReply.newBuilder().setConnectionId(nextUserId).setStatus(status).build();
         } else {
             loggedInUsers.add(username);
             //return new LoginResponse(true, "User " + username + " logged in successfully.");
