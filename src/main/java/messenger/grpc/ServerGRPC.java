@@ -59,12 +59,11 @@ public class ServerGRPC {
 
     static class MessageServerImpl extends MessengerGrpc.MessengerImplBase {
         @Override
-        public void createAccount(CreateAccountRequest req, StreamObserver<Status> responseObserver) {
+        public void createAccount(CreateAccountRequest req, StreamObserver<StatusReply> responseObserver) {
             // Logic here for processing request.
             Status responseStatus = Status.newBuilder()
-                    .setSuccess(true)
-                    .setMessage("test").build();
-            responseObserver.onNext(responseStatus);
+                    .setSuccess(true).build();
+            responseObserver.onNext(StatusReply.newBuilder().setStatus(responseStatus).build());
             responseObserver.onCompleted();
         }
     }

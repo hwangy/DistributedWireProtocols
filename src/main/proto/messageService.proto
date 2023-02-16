@@ -7,53 +7,84 @@ option java_outer_classname = "MessengerProto";
 package grpc;
 
 service Messenger {
-  rpc CreateAccount (CreateAccountRequest) returns (Status) {}
-  rpc DeleteAccount (DeleteAccountRequest) returns (Status) {}
-  rpc GetAccounts (GetAccountsRequest) returns (Status) {}
-  rpc GetUndeliveredMessages (GetUndeliveredMessagesRequest) returns (Status) {}
-  rpc SendMessage (SendMessageRequest) returns (Status) {}
-  rpc Login (LoginRequest) returns (Status) {}
-  rpc Logout (LogoutRequest) returns (Status) {}
+  rpc CreateAccount (CreateAccountRequest) returns (StatusReply) {}
+  rpc DeleteAccount (DeleteAccountRequest) returns (StatusReply) {}
+  rpc GetAccounts (GetAccountsRequest) returns (GetAccountsReply) {}
+  rpc GetUndeliveredMessages (GetUndeliveredMessagesRequest) returns (GetUndeliveredMessagesReply) {}
+  rpc SendMessage (SendMessageRequest) returns (StatusReply) {}
+  rpc Login (LoginRequest) returns (StatusReply) {}
+  rpc Logout (LogoutRequest) returns (StatusReply) {}
 }
 
+// Separate service for which the clients act *as the service.*
+// This allows the server to call `SendMessage` to send a message
+// to the correct client.
+service MessageDispatcher {
+  rpc SendMessage (Message) returns (StatusReply) {}
+}
+
+// Indicates the success or failure of a request, with optional
+// error message.
 message Status {
   bool success = 1;
-  string message = 2;
+  optional string error_message = 2;
+}
+
+// A reply which is used for requests which only return a
+// status.
+message StatusReply {
+  Status status = 1;
 }
 
 message CreateAccountRequest {
-  int32 identifier = 1;
+  int32 connection_id = 1;
   string username = 2;
 }
 
 message DeleteAccountRequest {
-  int32 identifier = 1;
+  int32 connection_id = 1;
   string username = 2;
 }
 
 message GetAccountsRequest {
-  int32 identifier = 1;
+  int32 connection_id = 1;
   string text_wildcard = 2;
 }
 
+message GetAccountsReply {
+  Status status = 1;
+  repeated string accounts = 2;
+}
+
 message GetUndeliveredMessagesRequest {
-  int32 identifier = 1;
+  int32 connection_id = 1;
   string username = 2;
 }
 
-message SendMessageRequest {
-  int32 identifier = 1;
+message GetUndeliveredMessagesReply {
+  Status status = 1;
+  repeated Message messages = 2;
+}
+
+message Message {
+  int64 sent_timestamp = 1;
   string sender = 2;
   string recipient = 3;
   string message = 4;
+  optional int64 delivered_timestamp = 5;
+}
+
+message SendMessageRequest {
+  int32 connection_id = 1;
+  Message message = 2;
 }
 
 message LoginRequest {
-  int32 identifier = 1;
+  int32 connection_id = 1;
   string username = 2;
 }
 
 message LogoutRequest {
-  int32 identifier = 1;
+  int32 connection_id = 1;
   string username = 2;
 }
