@@ -123,7 +123,9 @@ public class ClientGRPC {
     }
 
     /**
-     * 
+     * Implements API call to get undelivered methods associated with 
+     * the username
+     * @param username The username associated to this client.
      */
     public void getUndeliveredMessages(String username) {
         GetUndeliveredMessagesRequest request = GetUndeliveredMessagesRequest.newBuilder()
@@ -141,7 +143,10 @@ public class ClientGRPC {
     }
 
     /**
-     * 
+     * Implements API call to send a specified message from a sender to a recipient
+     * @param sender The sender of the message
+     * @param recipient The recipient of the message
+     * @param message The message to send
      */
     public void sendMessage(String sender, String recipient, String message) {
         Message message_object = Message.newBuilder()
@@ -165,8 +170,12 @@ public class ClientGRPC {
         Logging.logService(response.getStatus().getMessage());
     }
 
-    /**
-     * 
+     /**
+     * Implements API call to log into an account. Additionally, this call will provide
+     * the server with the client's IP address to facilitate the server forming a
+     * client-connection back to this client, in order to send messages addressed to this
+     * client.
+     * @param username  The username to associate to this client.
      */
     public void login(String username) {
         // Try to fetch the local IP address to provide to server
@@ -194,8 +203,9 @@ public class ClientGRPC {
         Logging.logService(response.getStatus().getMessage());*/
     }
 
-    /**
-     * 
+     /**
+     * Implements API call to log out of an account.
+     * @param username  The username associated to this client.
      */
     public void logout(String username) {
         LogoutRequest request = LogoutRequest.newBuilder()
