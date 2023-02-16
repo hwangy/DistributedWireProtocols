@@ -1,37 +1,73 @@
 package messenger.grpc;
 
-import io.grpc.Channel;
-import io.grpc.Grpc;
-import io.grpc.InsecureChannelCredentials;
-import io.grpc.ManagedChannel;
-import io.grpc.StatusRuntimeException;
+import io.grpc.*;
+import io.grpc.stub.StreamObserver;
 import messenger.ClientCore;
 import messenger.api.API;
+import messenger.network.NetworkUtil;
 import messenger.objects.request.LoginRequest;
 import messenger.objects.response.StatusMessageResponse;
 import messenger.util.Constants;
+import messenger.util.GRPCUtil;
 import messenger.util.Logging;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 public class ClientGRPC {
     private final MessengerGrpc.MessengerBlockingStub blockingStub;
+
+    // Identifier is initially set to -1
     private int identifier = -1;
 
-    /** Construct client for accessing HelloWorld server using the existing channel. */
-    public ClientGRPC(Channel channel) {
-        // 'channel' here is a Channel, not a ManagedChannel, so it is not this code's responsibility to
-        // shut it down.
+    private static Server server;
 
-        // Passing Channels to code makes code easier to test and makes it easier to reuse Channels.
+    public ClientGRPC(Channel channel) {
+        // Initialize stub which makes API calls.
         blockingStub = MessengerGrpc.newBlockingStub(channel);
     }
 
-    /** Say hello to server. */
+    /**
+     * Starts a service which allows the client to receive messages from the server.
+     * @throws IOException  Thrown on network exception.
+     */
+    private static void startMessageReceiver() throws IOException {
+        server = Grpc.newServerBuilderForPort(Constants.MESSAGE_PORT, InsecureServerCredentials.create())
+                .addService(new MessageReceiverImpl())
+                .build()
+                .start();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                // Use stderr here since the logger may have been reset by its JVM shutdown hook.
+                System.err.println("*** shutting down gRPC server since JVM is shutting down");
+                interrupt();
+                System.err.println("*** server shut down");
+            }
+        });
+    }
+
+    /**
+     * Implements API call to create an account. Additionally, this call will provide
+     * the server with the client's IP address to facilitate the server forming a
+     * client-connection back to this client, in order to send messages addressed to this
+     * client.
+     * @param username  The username to associate to this client.
+     */
     public void createAccount(String username) {
+        // Try to fetch the local IP address to provide to server
+        String ipAddress = null;
+        try {
+            ipAddress = NetworkUtil.getLocalIPAddress();
+            Logging.logInfo("Got IP Addresss: " + ipAddress);
+        } catch (UnknownHostException ex) {
+            Logging.logInfo("Failed to get local IP address, message handler will NOT be started.");
+        }
         CreateAccountRequest request = CreateAccountRequest.newBuilder()
                 .setUsername(username)
+                .setIpAddress(ipAddress)
                 .build();
         LoginReply response;
         try {
@@ -46,10 +82,6 @@ public class ClientGRPC {
         Logging.logService("Setting identifier to " + identifier);
     }
 
-    /**
-     * Greet server. If provided, the first element of {@code args} is the name to use in the
-     * greeting. The second argument is the target server.
-     */
     public static void main(String[] args) throws Exception {
         ClientCore core = new ClientCore();
         Scanner inputReader = new Scanner(System.in);
@@ -106,6 +138,9 @@ public class ClientGRPC {
                         Logging.logService("Please first create a username or log in, by selecting option "
                                 + API.CREATE_ACCOUNT.getIdentifier() + " or " + API.LOGIN.getIdentifier());
                     } else {
+                        // Start the service to receive messages
+                        startMessageReceiver();
+
                         LoginRequest loginRequest;
                         StatusMessageResponse statusResponse;
                         if (method == API.CREATE_ACCOUNT) {
@@ -127,6 +162,20 @@ public class ClientGRPC {
             // resources the channel should be shut down when it will no longer be used. If it may be used
             // again leave it running.
             channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
+        }
+    }
+
+    /**
+     * A simple message receiver implementation that prints out the messages
+     * it receives from the Server.
+     */
+    static class MessageReceiverImpl extends MessageReceiverGrpc.MessageReceiverImplBase {
+        @Override
+        public void sendMessage(Message req, StreamObserver<StatusReply> responseObserver) {
+            Logging.logInfo(String.format("Received message from [%s] %d:\t%s",
+                    req.getSender(),req.getSentTimestamp(),req.getMessage()));
+            responseObserver.onNext(GRPCUtil.genSuccessfulReply());
+            responseObserver.onCompleted();
         }
     }
 }

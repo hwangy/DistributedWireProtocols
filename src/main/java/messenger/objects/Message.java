@@ -57,6 +57,14 @@ public class Message extends Object {
         return receiver;
     }
 
+    public String getSender() {
+        return sender;
+    }
+
+    public Long getSentTimestamp() {
+        return timestamp;
+    }
+
     public String getMessage() {
         return message;
     }

@@ -9,7 +9,14 @@ public class GRPCUtil {
      * @param status    The status to convert.
      * @return          The StatusReply object
      */
-    public static StatusReply relyFromStatus(Status status) {
+    public static StatusReply replyFromStatus(Status status) {
         return StatusReply.newBuilder().setStatus(status).build();
+    }
+
+    /**
+     * Create a simple successful StatusReply
+     */
+    public static StatusReply genSuccessfulReply() {
+        return replyFromStatus(Status.newBuilder().setSuccess(true).build());
     }
 }

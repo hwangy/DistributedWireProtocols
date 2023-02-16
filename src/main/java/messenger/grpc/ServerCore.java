@@ -8,7 +8,6 @@ import messenger.objects.request.LoginRequest;
 import messenger.objects.request.LogoutRequest;
 import messenger.objects.request.SendMessageRequest;
 import messenger.objects.response.*;
-import messenger.util.GRPCUtil;
 import messenger.util.Logging;
 
 import java.util.*;
