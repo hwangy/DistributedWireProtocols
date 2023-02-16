@@ -4,6 +4,8 @@ import io.grpc.Grpc;
 import io.grpc.InsecureServerCredentials;
 import io.grpc.Server;
 import io.grpc.stub.StreamObserver;
+import messenger.util.Constants;
+import messenger.util.Logging;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -12,10 +14,10 @@ public class ServerGRPC {
     private Server server;
 
     private void start() throws IOException {
+        ServerCore core = new ServerCore();
         /* The port on which the server should run */
-        int port = 50051;
-        server = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
-                .addService(new MessageServerImpl())
+        server = Grpc.newServerBuilderForPort(Constants.API_PORT, InsecureServerCredentials.create())
+                .addService(new MessageServerImpl(core))
                 .build()
                 .start();
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -58,12 +60,17 @@ public class ServerGRPC {
     }
 
     static class MessageServerImpl extends MessengerGrpc.MessengerImplBase {
+
+        private final ServerCore core;
+
+        public MessageServerImpl(ServerCore core) {
+            this.core = core;
+        }
         @Override
-        public void createAccount(CreateAccountRequest req, StreamObserver<StatusReply> responseObserver) {
+        public void createAccount(CreateAccountRequest req, StreamObserver<LoginReply> responseObserver) {
             // Logic here for processing request.
-            Status responseStatus = Status.newBuilder()
-                    .setSuccess(true).build();
-            responseObserver.onNext(StatusReply.newBuilder().setStatus(responseStatus).build());
+            Logging.logInfo("Received CREATE_ACCOUNT request");
+            responseObserver.onNext(core.createAccountAPI(req));
             responseObserver.onCompleted();
         }
     }

@@ -7,38 +7,42 @@ option java_outer_classname = "MessengerProto";
 package grpc;
 
 service Messenger {
-  rpc CreateAccount (CreateAccountRequest) returns (StatusReply) {}
+  rpc CreateAccount (CreateAccountRequest) returns (LoginReply) {}
   rpc DeleteAccount (DeleteAccountRequest) returns (StatusReply) {}
   rpc GetAccounts (GetAccountsRequest) returns (GetAccountsReply) {}
   rpc GetUndeliveredMessages (GetUndeliveredMessagesRequest) returns (GetUndeliveredMessagesReply) {}
   rpc SendMessage (SendMessageRequest) returns (StatusReply) {}
-  rpc Login (LoginRequest) returns (StatusReply) {}
+  rpc Login (LoginRequest) returns (LoginReply) {}
   rpc Logout (LogoutRequest) returns (StatusReply) {}
 }
 
 // Separate service for which the clients act *as the service.*
 // This allows the server to call `SendMessage` to send a message
 // to the correct client.
-service MessageDispatcher {
+service MessageReceiver {
   rpc SendMessage (Message) returns (StatusReply) {}
 }
 
-// Indicates the success or failure of a request, with optional
-// error message.
+// Indicates the success or failure of a request, with optional message
 message Status {
   bool success = 1;
-  optional string error_message = 2;
+  optional string message = 2;
 }
 
-// A reply which is used for requests which only return a
-// status.
+// A reply which is used for requests which only return a status.
 message StatusReply {
   Status status = 1;
 }
 
 message CreateAccountRequest {
-  int32 connection_id = 1;
   string username = 2;
+}
+
+// When a user logs in, a unique identifier is provided from the server
+// to the client. This id should be used for future communication
+message LoginReply {
+  int32 connection_id = 1;
+  Status status = 2;
 }
 
 message DeleteAccountRequest {

@@ -258,3 +258,21 @@ seemed complicated to design, so we went with the following approach.
 > user has logged in, will launch a MessageReceiver thread, listening for incoming messages. The
 > server, also when a user has logged in, will launch a MessageDispatcher thread, which checks 
 > queued messages for those addressed to that specific user, then sends it.
+
+## February 15th
+We've begun the conversion into GRPC. We've created a separate branch in our git repo and are building
+a separate `ServerGRPC` and `ClientGRPC` class to try to keep things distinct. One immediate change
+we're making is using a single StatusReply object for each of the API calls which only return a simple
+response.
+
+Additionally, we've made a tentative decision to have a separate service in which the client acts as a 
+server so that it can receive messages sent from the client.
+> **Decision** Implement a new `MessageReceiver` service through which the server can call 
+> `SendMessage` to send a message to a client.
+
+### Unique Identifiers
+In order to keep track of sessions, we're adding identifiers to each of the requests made by the client.
+Currently, the plan is for the server to issue an identifier to each client, then the client should present
+this identifier at each API call.
+
+These identifiers will be issued on `CreateAccount` and `Login`.
