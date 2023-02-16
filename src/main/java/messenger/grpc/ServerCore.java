@@ -95,7 +95,7 @@ public class ServerCore {
      *
      * @return  a list of all users.
      */
-    public GetAccountsResponse getAccountsAPI(GetAccountsRequest request) {
+    public GetAccountsReply getAccountsAPI(GetAccountsRequest request) {
         List matches = new ArrayList<String>();
         String regex = request.getTextWildcard();
         if (!regex.isEmpty()) {
@@ -107,7 +107,10 @@ public class ServerCore {
         } else {
             matches.addAll(allAccounts);
         }
-        return new GetAccountsResponse(true, matches);
+        //return new GetAccountsResponse(true, matches);
+        Logging.logInfo(String.format("Listing accounts associated with text wildcard %s.", regex));
+        Status status = Status.newBuilder().setSuccess(true).setMessage("Successfully listing accounts.").build();
+        return GetAccountsReply.newBuilder().setStatus(status).setAccounts(matches).build();
     }
 
     /**
@@ -172,20 +175,22 @@ public class ServerCore {
      * @param request   A request for undelivered messages for a user.
      * @return          A response contained the messages.
      */
-    public GetUndeliveredMessagesReply getUndeliveredMessagesAPI(GetUndeliveredMessagesRequest request) {
+    public GetUndeliveredMessagesResponse getUndeliveredMessagesAPI(GetUndeliveredMessagesRequest request) {
         String username = request.getUsername();
         if (undeliveredMessages.containsKey(username)) {
-            //return new GetUndeliveredMessagesResponse(true, undeliveredMessages.get(username));
-            Logging.logInfo(String.format("Retrieving undelivered messages."));
+            return new GetUndeliveredMessagesResponse(true, undeliveredMessages.get(username));
+            /*Logging.logInfo(String.format("Retrieving undelivered messages."));
             Status status = Status.newBuilder().setSuccess(true).setMessage("Retrieving undelivered messages.").build();
             List<Message> messages = undeliveredMessages.get(username);
             return GetUndeliveredMessagesReply.newBuilder().setStatus(status).setMessages(messages).build();
+            */
         } else {
-            //return new GetUndeliveredMessagesResponse(true, new ArrayList<>());
-            Logging.logInfo(String.format("No undelivered messages."));
+            return new GetUndeliveredMessagesResponse(true, new ArrayList<>());
+            /*Logging.logInfo(String.format("No undelivered messages."));
             Status status = Status.newBuilder().setSuccess(true).setMessage("No undelivered messages.").build();
             List<Message> messages = new ArrayList<Message>();
             return GetUndeliveredMessagesReply.newBuilder().setStatus(status).setMessages(messages).build();
+            */
         }
     }
 
