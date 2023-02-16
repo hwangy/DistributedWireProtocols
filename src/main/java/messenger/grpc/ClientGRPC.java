@@ -83,7 +83,8 @@ public class ClientGRPC {
     }
 
     /**
-     * 
+     * Implements API call to delete an account. 
+     * @param username  The username to associate to this client.
      */
     public void deleteAccount(String username) {
         DeleteAccountRequest request = DeleteAccountRequest.newBuilder()
@@ -98,53 +99,119 @@ public class ClientGRPC {
             return;
         }
 
-        Logging.logService(response.getStatus());
+        Logging.logService(response.getStatus().getMessage());
     }
 
     /**
-     * 
+     * Implements API call to get all accounts associated with the 
+     * text wildcard that is input.
+     * @param text_wildcard  The text wildcard to use for returning accounts
      */
     public void getAccounts(String text_wildcard) {
-       GetAccountsRequest request = GetAccountsRequest.newBuilder()
+        GetAccountsRequest request = GetAccountsRequest.newBuilder()
             .setConnectionId(1) // fix this.
             .setTextWildcard(text_wildcard)
             .build();
-        StatusReply response;
+        GetAccountsReply response;
         try {
-            response = blockingStub.deleteAccount(request);
+            response = blockingStub.getAccounts(request);
         } catch (StatusRuntimeException e) {
             Logging.logInfo("RPC failed: " + e.getStatus());
             return;
         }
+        Logging.logService(response.getStatus().getMessage());
     }
 
     /**
      * 
      */
-    public void getUndeliveredMessagees(String username) {
-
+    public void getUndeliveredMessages(String username) {
+        GetUndeliveredMessagesRequest request = GetUndeliveredMessagesRequest.newBuilder()
+            .setConnectionId(1) // fix this.
+            .setUsername(username)
+            .build();
+        GetUndeliveredMessagesReply response;
+        try {
+            response = blockingStub.getUndeliveredMessages(request);
+        } catch (StatusRuntimeException e) {
+            Logging.logInfo("RPC failed: " + e.getStatus());
+            return;
+        }
+        Logging.logService(response.getStatus().getMessage());
     }
 
     /**
      * 
      */
     public void sendMessage(String sender, String recipient, String message) {
-
+        Message message_object = Message.newBuilder()
+            .setSentTimestamp(1) // fix this.
+            .setSender(sender)
+            .setRecipient(recipient)
+            .setMessage(message)
+            .setDeliveredTimestamp(2) // fix this.
+            .build();
+        SendMessageRequest request = SendMessageRequest.newBuilder()
+            .setConnectionId(1) // fix this.
+            .setMessage(message_object)
+            .build();
+        StatusReply response;
+        try {
+            response = blockingStub.sendMessage(request);
+        } catch (StatusRuntimeException e) {
+            Logging.logInfo("RPC failed: " + e.getStatus());
+            return;
+        }
+        Logging.logService(response.getStatus().getMessage());
     }
 
     /**
      * 
      */
     public void login(String username) {
+        // Try to fetch the local IP address to provide to server
+        /*String ipAddress = null;
+        try {
+            ipAddress = NetworkUtil.getLocalIPAddress();
+            Logging.logInfo("Got IP Address: " + ipAddress);
+        } catch (UnknownHostException ex) {
+            Logging.logInfo("Failed to get local IP address, message handler will NOT be started.");
+        }
+        LoginRequest request = LoginRequest.newBuilder()
+                .setIpAddress(ipAddress)
+                .setUsername(username)
+                .setConnectionId(1) // fix this.
+                .build();
+        LoginReply response;
 
+        try {
+            response = blockingStub.login(request);
+        } catch (StatusRuntimeException e) {
+            Logging.logInfo("RPC failed: " + e.getStatus());
+            return;
+        }
 
+        Logging.logService(response.getStatus().getMessage());*/
     }
 
     /**
      * 
      */
     public void logout(String username) {
+        LogoutRequest request = LogoutRequest.newBuilder()
+                .setConnectionId(1) // fix this.
+                .setUsername(username)
+                .build();
+        StatusReply response;
 
+        try {
+            response = blockingStub.logout(request);
+        } catch (StatusRuntimeException e) {
+            Logging.logInfo("RPC failed: " + e.getStatus());
+            return;
+        }
+
+        Logging.logService(response.getStatus().getMessage());
 
     }
 
