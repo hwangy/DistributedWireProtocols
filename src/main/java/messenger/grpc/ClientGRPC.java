@@ -61,7 +61,7 @@ public class ClientGRPC {
         String ipAddress = null;
         try {
             ipAddress = NetworkUtil.getLocalIPAddress();
-            Logging.logInfo("Got IP Addresss: " + ipAddress);
+            Logging.logInfo("Got IP Address: " + ipAddress);
         } catch (UnknownHostException ex) {
             Logging.logInfo("Failed to get local IP address, message handler will NOT be started.");
         }
@@ -80,6 +80,72 @@ public class ClientGRPC {
         Logging.logService(response.getStatus().getMessage());
         identifier = response.getConnectionId();
         Logging.logService("Setting identifier to " + identifier);
+    }
+
+    /**
+     * 
+     */
+    public void deleteAccount(String username) {
+        DeleteAccountRequest request = DeleteAccountRequest.newBuilder()
+                .setConnectionId(1) // fix this.
+                .setUsername(username)
+                .build();
+        StatusReply response;
+        try {
+            response = blockingStub.deleteAccount(request);
+        } catch (StatusRuntimeException e) {
+            Logging.logInfo("RPC failed: " + e.getStatus());
+            return;
+        }
+
+        Logging.logService(response.getStatus());
+    }
+
+    /**
+     * 
+     */
+    public void getAccounts(String text_wildcard) {
+       GetAccountsRequest request = GetAccountsRequest.newBuilder()
+            .setConnectionId(1) // fix this.
+            .setTextWildcard(text_wildcard)
+            .build();
+        StatusReply response;
+        try {
+            response = blockingStub.deleteAccount(request);
+        } catch (StatusRuntimeException e) {
+            Logging.logInfo("RPC failed: " + e.getStatus());
+            return;
+        }
+    }
+
+    /**
+     * 
+     */
+    public void getUndeliveredMessagees(String username) {
+
+    }
+
+    /**
+     * 
+     */
+    public void sendMessage(String sender, String recipient, String message) {
+
+    }
+
+    /**
+     * 
+     */
+    public void login(String username) {
+
+
+    }
+
+    /**
+     * 
+     */
+    public void logout(String username) {
+
+
     }
 
     public static void main(String[] args) throws Exception {
