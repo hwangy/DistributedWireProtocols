@@ -1,19 +1,11 @@
 package messenger.grpc;
 
-import messenger.objects.Message;
-import messenger.objects.request.DeleteAccountRequest;
-import messenger.objects.request.GetUndeliveredMessagesRequest;
-import messenger.objects.request.LoginRequest;
-import messenger.objects.request.LogoutRequest;
-import messenger.objects.request.SendMessageRequest;
-import messenger.objects.response.GetAccountsResponse;
-import messenger.objects.response.GetUndeliveredMessagesResponse;
 import messenger.util.Logging;
 
 import java.util.*;
 
 public class ServerCore {
-    private int nextUserId;
+    private int nextConnectionId;
     private final Map<String, List<Message>> sentMessages;
     private final Map<String, List<Message>> queuedMessagesMap;
 
@@ -26,13 +18,41 @@ public class ServerCore {
     private final Set<String> allAccounts;
 
     public ServerCore() {
-        nextUserId = 0;
+        nextConnectionId = 0;
         this.sentMessages = new HashMap<>();
         this.queuedMessagesMap = new HashMap<>();
         this.undeliveredMessages = new HashMap<>();
         this.loggedInUsers = new HashSet<>();
         this.allAccounts = new HashSet<>();
         this.idToUserMap = new HashMap<>();
+    }
+
+    /**
+     * Logs in a user by adding them to loggedInUsers
+     * as well as creating an entry in idToUserMap, with a
+     * generated connection id.
+     * @param username      The username of user
+     * @return              A LoginReply indicating status of the login request.
+     */
+    private LoginReply logInUser(String username) {
+        Boolean success = false;
+        Integer connectionId = null;
+        String message;
+        if (isLoggedIn(username)) {
+            message = "User " + username + " is already logged in.";
+        } else {
+            connectionId = nextConnectionId++;
+            Logging.logInfo(String.format("Assigning id %d to user %s.", connectionId, username));
+            loggedInUsers.add(username);
+            idToUserMap.put(connectionId, username);
+            message = "User " + username + " logged in successfully";
+        }
+        Status status = Status.newBuilder().setSuccess(success).setMessage(message).build();
+        if (success) {
+            return LoginReply.newBuilder().setConnectionId(connectionId).setStatus(status).build();
+        } else {
+            return LoginReply.newBuilder().setStatus(status).build();
+        }
     }
 
     public Set<String> getAccounts() {
@@ -47,12 +67,12 @@ public class ServerCore {
      */
     private void addMessageToList(Map<String, List<Message>> listToAdd, Message message) {
         List<Message> messageList;
-        String recepient = message.getRecepient();
-        if (listToAdd.containsKey(recepient)) {
-            messageList = listToAdd.get(recepient);
+        String recipient = message.getRecipient();
+        if (listToAdd.containsKey(recipient)) {
+            messageList = listToAdd.get(recipient);
         } else {
             messageList = new ArrayList<>();
-            listToAdd.put(recepient, messageList);
+            listToAdd.put(recipient, messageList);
         }
         messageList.add(message);
     }
@@ -84,10 +104,6 @@ public class ServerCore {
 
     public Boolean isLoggedIn(String username) {
         return loggedInUsers.contains(username);
-    }
-
-    public void logoutUser(String username) {
-        loggedInUsers.remove(username);
     }
 
     /**
@@ -125,22 +141,13 @@ public class ServerCore {
      */
     public LoginReply createAccountAPI(CreateAccountRequest request) {
         String username = request.getUsername();
-        String message;
-        Boolean success = false;
         if (allAccounts.contains(username)) {
-            message = "User " + username + " already exists.";
+            String message = "User " + username + " already exists.";
+            Status status = Status.newBuilder().setSuccess(false).setMessage(message).build();
+            return LoginReply.newBuilder().setStatus(status).build();
         } else {
-            allAccounts.add(username);
-            // Also log in the user.
-            loggedInUsers.add(username);
-            success = true;
-            message = "User " + username + " created and logged in successfully.";
+            return logInUser(username);
         }
-        // Add user to user map
-        Logging.logInfo(String.format("Assigning id %d to user %s.", nextUserId, username));
-        idToUserMap.put(nextUserId,username);
-        Status status = Status.newBuilder().setSuccess(success).setMessage(message).build();
-        return LoginReply.newBuilder().setConnectionId(nextUserId++).setStatus(status).build();
     }
 
     /**
@@ -155,7 +162,7 @@ public class ServerCore {
         Boolean success = false;
         if (allAccounts.contains(username)) {
             allAccounts.remove(username);
-            // Also remove from logged in users if logged in.
+            // Also remove from logged-in users if logged in.
             loggedInUsers.remove(username);
 
             success = true;
@@ -165,7 +172,7 @@ public class ServerCore {
         }
         // Delete user from user map
         Logging.logInfo(String.format("Deleting user %s.", username));
-        idToUserMap.remove(nextUserId, username);
+        idToUserMap.remove(request.getConnectionId());
         Status status = Status.newBuilder().setSuccess(success).setMessage(message).build();
         return StatusReply.newBuilder().setStatus(status).build();
     }
@@ -176,23 +183,16 @@ public class ServerCore {
      * @param request   A request for undelivered messages for a user.
      * @return          A response contained the messages.
      */
-    public GetUndeliveredMessagesResponse getUndeliveredMessagesAPI(GetUndeliveredMessagesRequest request) {
+    public GetUndeliveredMessagesReply getUndeliveredMessagesAPI(GetUndeliveredMessagesRequest request) {
         String username = request.getUsername();
+        List<Message> messages;
         if (undeliveredMessages.containsKey(username)) {
-            return new GetUndeliveredMessagesResponse(true, undeliveredMessages.get(username));
-            /*Logging.logInfo(String.format("Retrieving undelivered messages."));
-            Status status = Status.newBuilder().setSuccess(true).setMessage("Retrieving undelivered messages.").build();
-            List<Message> messages = undeliveredMessages.get(username);
-            return GetUndeliveredMessagesReply.newBuilder().setStatus(status).setMessages(messages).build();
-            */
+            messages = undeliveredMessages.get(username);
         } else {
-            return new GetUndeliveredMessagesResponse(true, new ArrayList<>());
-            /*Logging.logInfo(String.format("No undelivered messages."));
-            Status status = Status.newBuilder().setSuccess(true).setMessage("No undelivered messages.").build();
-            List<Message> messages = new ArrayList<Message>();
-            return GetUndeliveredMessagesReply.newBuilder().setStatus(status).setMessages(messages).build();
-            */
+            messages = new ArrayList<>();
         }
+        Status status = Status.newBuilder().setSuccess(true).setMessage("Retrieving undelivered messages.").build();
+        return GetUndeliveredMessagesReply.newBuilder().setStatus(status).addAllMessages(messages).build();
     }
 
     /**
@@ -203,24 +203,16 @@ public class ServerCore {
      * @return          A status of whether the message was delivered or added to undelivered messages.
      */
     public StatusReply sendMessageAPI(SendMessageRequest request) {
-        String sender = request.getSender();
-        String recipient = request.getRecipient();
-        String strMessage = request.getMessage();
+        Message message = request.getMessage();
 
-        // Create Message object.
-        Message message = new Message(System.currentTimeMillis(), sender, recipient, strMessage);
-        if (loggedInUsers.contains(recipient)) {
+        if (loggedInUsers.contains(message.getRecipient())) {
             // If the user is logged in, immediately send the message.
             addMessageToList(queuedMessagesMap, message);
-            //return new SendMessageResponse(true, "Message sent successfully.");
-            Logging.logInfo(String.format("Message sent successfully."));
             Status status = Status.newBuilder().setSuccess(true).setMessage("Message sent successfully.").build();
             return StatusReply.newBuilder().setStatus(status).build();
         } else {
             // Otherwise add to undelivered messages for future delivery
             addMessageToList(undeliveredMessages, message);
-            //return new SendMessageResponse(true, "Message queued for delivery.");
-            Logging.logInfo(String.format("Message queued for delivery."));
             Status status = Status.newBuilder().setSuccess(true).setMessage("Message queued for delivery.").build();
             return StatusReply.newBuilder().setStatus(status).build();
         }
@@ -234,28 +226,7 @@ public class ServerCore {
      * @return          A status message indicating success or failure.
      */
     public LoginReply loginUserAPI(LoginRequest request) {
-        String username = request.getUsername();
-        if (!allAccounts.contains(username)) {
-            //return new LoginResponse(false, "User " + username + " does not exist, account " +
-                   // "must be created before user is logged in.");
-            Logging.logInfo(String.format( "User %s does not exist, account must be created before user is logged in.", username));
-            Status status = Status.newBuilder().setSuccess(false).setMessage("User " + username + " does not exist, account " +
-                "must be created before user is logged in.").build();
-            return LoginReply.newBuilder().setConnectionId(nextUserId).setStatus(status).build();
-        }
-
-        if (loggedInUsers.contains(username)) {
-            //return new LoginResponse(false, "User " + username + " already logged in.");
-            Logging.logInfo(String.format( "User %s already logged in.", username));
-            Status status = Status.newBuilder().setSuccess(false).setMessage( "User " + username + " already logged in.").build();
-            return LoginReply.newBuilder().setConnectionId(nextUserId).setStatus(status).build();
-        } else {
-            loggedInUsers.add(username);
-            //return new LoginResponse(true, "User " + username + " logged in successfully.");
-            Logging.logInfo(String.format("User %s logged in successfully.", username));
-            Status status = Status.newBuilder().setSuccess(true).setMessage("User " + username + " logged in successfully.").build();
-            return LoginReply.newBuilder().setConnectionId(nextUserId++).setStatus(status).build();
-        }
+        return logInUser(request.getUsername());
     }
 
     /**
@@ -264,18 +235,18 @@ public class ServerCore {
      * @return          A status message indicating success or failure.
      */
     public StatusReply logoutUserAPI(LogoutRequest request) {
+        Boolean success = false;
         String username = request.getUsername();
-        if (loggedInUsers.contains(username)) {
-            loggedInUsers.remove(username);
-            //return new LogoutResponse(true, "User " + username + " logged out successfully.");
-            Logging.logInfo(String.format("User %s logged out successfully.", username));
-            Status status = Status.newBuilder().setSuccess(true).setMessage("User " + username + " logged out successfully.").build();
-            return StatusReply.newBuilder().setStatus(status).build();
+        String message;
+        if (!isLoggedIn(username)) {
+            message = "User " + username + " is not logged in and cannot be logged out.";
         } else {
-            //return new LogoutResponse(false, "User " + username + " not logged in.");
-            Logging.logInfo(String.format("User %s not logged in.", username));
-            Status status = Status.newBuilder().setSuccess(false).setMessage("User " + username + " not logged in.").build();
-            return StatusReply.newBuilder().setStatus(status).build();
+            loggedInUsers.remove(username);
+            idToUserMap.remove(request.getConnectionId());
+            message = "User " + username + " logged out successfully.";
         }
+        return StatusReply.newBuilder().setStatus(Status.newBuilder()
+                .setSuccess(success)
+                .setMessage(message).build()).build();
     }
 }

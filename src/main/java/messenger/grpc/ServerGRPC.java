@@ -69,6 +69,13 @@ public class ServerGRPC {
     /**
      * The implementation of the Message server. The server handles the main
      * API-related calls.
+     *
+     * The overridden methods in this class are largely uninteresting; see
+     * the corresponding `[methodName]API` methods in the `ServerCore` class
+     * for implementation details and explanations.
+     *
+     * As such, comments for the methods are largely omitted, except where
+     * something interesting happens (e.g. launching the message handler).
      */
     static class MessageServerImpl extends MessengerGrpc.MessengerImplBase {
 
@@ -79,19 +86,54 @@ public class ServerGRPC {
         }
 
         /**
-         * Creates an account. Since this also logs in the user, it also
-         * launches a MessageHandler thread to dispatch messages to that
-         * user.
-         * @param req               A CreateAccountRequest
-         * @param responseObserver  Observer on which to send responses
+         * The folowing two methods, createAccount and login, also start a MessageHandler
+         * service which sends messages received to the user which is logged in.
          */
         @Override
         public void createAccount(CreateAccountRequest req, StreamObserver<LoginReply> responseObserver) {
-            // Logic here for processing request.
-            Logging.logInfo("Received CREATE_ACCOUNT request");
             responseObserver.onNext(core.createAccountAPI(req));
             MessageHandler handler = new MessageHandler(core, req.getUsername(), req.getIpAddress());
             new Thread(handler).start();
+            responseObserver.onCompleted();
+        }
+
+        @Override
+        public void login(LoginRequest req, StreamObserver<LoginReply> responseObserver) {
+            responseObserver.onNext(core.loginUserAPI(req));
+            MessageHandler handler = new MessageHandler(core, req.getUsername(), req.getIpAddress());
+            new Thread(handler).start();
+            responseObserver.onCompleted();
+        }
+
+
+        @Override
+        public void sendMessage(SendMessageRequest req, StreamObserver<StatusReply> responseObserver) {
+            responseObserver.onNext(core.sendMessageAPI(req));
+            responseObserver.onCompleted();
+        }
+
+        @Override
+        public void getAccounts(GetAccountsRequest req, StreamObserver<GetAccountsReply> responseObserver) {
+            responseObserver.onNext(core.getAccountsAPI(req));
+            responseObserver.onCompleted();
+        }
+
+        @Override
+        public void deleteAccount(DeleteAccountRequest req, StreamObserver<StatusReply> responseObserver) {
+            responseObserver.onNext(core.deleteAccountAPI(req));
+            responseObserver.onCompleted();
+        }
+
+        @Override
+        public void getUndeliveredMessages(GetUndeliveredMessagesRequest req,
+                                           StreamObserver<GetUndeliveredMessagesReply> responseObserver) {
+            responseObserver.onNext(core.getUndeliveredMessagesAPI(req));
+            responseObserver.onCompleted();
+        }
+
+        @Override
+        public void logout(LogoutRequest req, StreamObserver<StatusReply> responseObserver) {
+            responseObserver.onNext(core.logoutUserAPI(req));
             responseObserver.onCompleted();
         }
     }
@@ -151,14 +193,12 @@ public class ServerGRPC {
                         return;
                     }
 
-                    Optional<List<messenger.objects.Message>> messageList = server.getQueuedMessages(username);
+                    Optional<List<Message>> messageList = server.getQueuedMessages(username);
                     if (messageList.isPresent()) {
-                        for (messenger.objects.Message message : messageList.get()) {
-                            sendMessage(Message.newBuilder()
-                                    .setMessage(message.getMessage())
-                                    .setRecipient(message.getRecepient())
-                                    .setSender(message.getSender())
-                                    .setSentTimestamp(message.getSentTimestamp())
+                        Long timestamp = System.currentTimeMillis();
+                        for (Message message : messageList.get()) {
+                            sendMessage(Message.newBuilder().mergeFrom(message)
+                                    .setSentTimestamp(timestamp)
                                     .build());
                         }
                         Logging.logInfo("All messages delivered to user " + username);

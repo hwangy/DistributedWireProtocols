@@ -40,9 +40,10 @@ message CreateAccountRequest {
 }
 
 // When a user logs in, a unique identifier is provided from the server
-// to the client. This id should be used for future communication
+// to the client. This id should be used for future communication. The
+// connection_id will only be set if the Status is successful.
 message LoginReply {
-  int32 connection_id = 1;
+  optional int32 connection_id = 1;
   Status status = 2;
 }
 
