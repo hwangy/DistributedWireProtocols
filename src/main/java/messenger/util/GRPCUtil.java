@@ -1,5 +1,6 @@
 package messenger.util;
 
+import messenger.grpc.Message;
 import messenger.grpc.Status;
 import messenger.grpc.StatusReply;
 
@@ -18,5 +19,10 @@ public class GRPCUtil {
      */
     public static StatusReply genSuccessfulReply() {
         return replyFromStatus(Status.newBuilder().setSuccess(true).build());
+    }
+
+    public static void printMessage(Message message) {
+        Logging.logInfo(String.format("Received message from [%s] %d:\t%s",
+                message.getSender(),message.getSentTimestamp(),message.getMessage()));
     }
 }

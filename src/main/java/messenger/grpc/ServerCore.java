@@ -2,12 +2,12 @@ package messenger.grpc;
 
 import messenger.objects.Message;
 import messenger.objects.request.DeleteAccountRequest;
-import messenger.objects.request.GetAccountsRequest;
 import messenger.objects.request.GetUndeliveredMessagesRequest;
 import messenger.objects.request.LoginRequest;
 import messenger.objects.request.LogoutRequest;
 import messenger.objects.request.SendMessageRequest;
-import messenger.objects.response.*;
+import messenger.objects.response.GetAccountsResponse;
+import messenger.objects.response.GetUndeliveredMessagesResponse;
 import messenger.util.Logging;
 
 import java.util.*;
@@ -95,7 +95,7 @@ public class ServerCore {
      *
      * @return  a list of all users.
      */
-    public GetAccountsResponse getAccountsAPI(GetAccountsRequest request) {
+    public GetAccountsReply getAccountsAPI(GetAccountsRequest request) {
         List matches = new ArrayList<String>();
         String regex = request.getTextWildcard();
         if (!regex.isEmpty()) {
@@ -107,11 +107,11 @@ public class ServerCore {
         } else {
             matches.addAll(allAccounts);
         }
-        return new GetAccountsResponse(true, matches);
-        /*Logging.logInfo(String.format("Listing accounts associated with text wildcard %s.", regex));
         Status status = Status.newBuilder().setSuccess(true).setMessage("Successfully listing accounts.").build();
-        return GetAccountsReply.newBuilder().setStatus(status).setAccounts(matches).build();
-        */
+        return GetAccountsReply.newBuilder()
+                .addAllAccounts(matches)
+                .setStatus(status)
+                .build();
     }
 
     /**

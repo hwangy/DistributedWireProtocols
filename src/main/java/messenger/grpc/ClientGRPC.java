@@ -2,10 +2,8 @@ package messenger.grpc;
 
 import io.grpc.*;
 import io.grpc.stub.StreamObserver;
-import messenger.ClientCore;
 import messenger.api.API;
 import messenger.network.NetworkUtil;
-import messenger.objects.request.LoginRequest;
 import messenger.objects.response.StatusMessageResponse;
 import messenger.util.Constants;
 import messenger.util.GRPCUtil;
@@ -18,13 +16,10 @@ import java.util.concurrent.TimeUnit;
 
 public class ClientGRPC {
     private final MessengerGrpc.MessengerBlockingStub blockingStub;
-
-    // Identifier is initially set to -1
-    private int identifier = -1;
-
-    private static Server server;
+    private final ClientCore core;
 
     public ClientGRPC(Channel channel) {
+        core = new ClientCore();
         // Initialize stub which makes API calls.
         blockingStub = MessengerGrpc.newBlockingStub(channel);
     }
@@ -34,7 +29,7 @@ public class ClientGRPC {
      * @throws IOException  Thrown on network exception.
      */
     private static void startMessageReceiver() throws IOException {
-        server = Grpc.newServerBuilderForPort(Constants.MESSAGE_PORT, InsecureServerCredentials.create())
+        Grpc.newServerBuilderForPort(Constants.MESSAGE_PORT, InsecureServerCredentials.create())
                 .addService(new MessageReceiverImpl())
                 .build()
                 .start();
@@ -77,9 +72,8 @@ public class ClientGRPC {
             return;
         }
 
-        Logging.logService(response.getStatus().getMessage());
-        identifier = response.getConnectionId();
-        Logging.logService("Setting identifier to " + identifier);
+        // Log in the user
+        core.setLoggedInStatus(username, response);
     }
 
     /**
@@ -88,7 +82,7 @@ public class ClientGRPC {
      */
     public void deleteAccount(String username) {
         DeleteAccountRequest request = DeleteAccountRequest.newBuilder()
-                .setConnectionId(1) // fix this.
+                .setConnectionId(core.getConnectionId())
                 .setUsername(username)
                 .build();
         StatusReply response;
@@ -109,7 +103,7 @@ public class ClientGRPC {
      */
     public void getAccounts(String text_wildcard) {
         GetAccountsRequest request = GetAccountsRequest.newBuilder()
-            .setConnectionId(1) // fix this.
+            .setConnectionId(core.getConnectionId())
             .setTextWildcard(text_wildcard)
             .build();
         GetAccountsReply response;
@@ -119,7 +113,10 @@ public class ClientGRPC {
             Logging.logInfo("RPC failed: " + e.getStatus());
             return;
         }
-        Logging.logService(response.getStatus().getMessage());
+        Logging.logService("Found accounts: ");
+        for (String account : response.getAccountsList()) {
+            Logging.logService("\t" + account);
+        }
     }
 
     /**
@@ -129,7 +126,7 @@ public class ClientGRPC {
      */
     public void getUndeliveredMessages(String username) {
         GetUndeliveredMessagesRequest request = GetUndeliveredMessagesRequest.newBuilder()
-            .setConnectionId(1) // fix this.
+            .setConnectionId(core.getConnectionId())
             .setUsername(username)
             .build();
         GetUndeliveredMessagesReply response;
@@ -139,7 +136,9 @@ public class ClientGRPC {
             Logging.logInfo("RPC failed: " + e.getStatus());
             return;
         }
-        Logging.logService(response.getStatus().getMessage());
+        for (Message message : response.getMessagesList()) {
+            GRPCUtil.printMessage(message);
+        }
     }
 
     /**
@@ -150,14 +149,13 @@ public class ClientGRPC {
      */
     public void sendMessage(String sender, String recipient, String message) {
         Message message_object = Message.newBuilder()
-            .setSentTimestamp(1) // fix this.
+            .setSentTimestamp(System.currentTimeMillis())
             .setSender(sender)
             .setRecipient(recipient)
             .setMessage(message)
-            .setDeliveredTimestamp(2) // fix this.
             .build();
         SendMessageRequest request = SendMessageRequest.newBuilder()
-            .setConnectionId(1) // fix this.
+            .setConnectionId(core.getConnectionId())
             .setMessage(message_object)
             .build();
         StatusReply response;
@@ -179,17 +177,17 @@ public class ClientGRPC {
      */
     public void login(String username) {
         // Try to fetch the local IP address to provide to server
-        /*String ipAddress = null;
+        String ipAddress = null;
         try {
             ipAddress = NetworkUtil.getLocalIPAddress();
             Logging.logInfo("Got IP Address: " + ipAddress);
         } catch (UnknownHostException ex) {
             Logging.logInfo("Failed to get local IP address, message handler will NOT be started.");
         }
+
         LoginRequest request = LoginRequest.newBuilder()
                 .setIpAddress(ipAddress)
                 .setUsername(username)
-                .setConnectionId(1) // fix this.
                 .build();
         LoginReply response;
 
@@ -200,7 +198,7 @@ public class ClientGRPC {
             return;
         }
 
-        Logging.logService(response.getStatus().getMessage());*/
+        core.setLoggedInStatus(username, response);
     }
 
      /**
@@ -209,7 +207,7 @@ public class ClientGRPC {
      */
     public void logout(String username) {
         LogoutRequest request = LogoutRequest.newBuilder()
-                .setConnectionId(1) // fix this.
+                .setConnectionId(core.getConnectionId())
                 .setUsername(username)
                 .build();
         StatusReply response;
@@ -221,12 +219,10 @@ public class ClientGRPC {
             return;
         }
 
-        Logging.logService(response.getStatus().getMessage());
-
+        core.setLoggedOutStatus(response);
     }
 
     public static void main(String[] args) throws Exception {
-        ClientCore core = new ClientCore();
         Scanner inputReader = new Scanner(System.in);
 
         // Get server IP address from user.
@@ -273,7 +269,7 @@ public class ClientGRPC {
                     continue;
                 }
 
-                String username = core.getUsername();
+                String username = client.core.getUsername();
                 if (username == null) {
                     // The user should only be allowed to select a method
                     // `CREATE_ACCOUNT` or `LOGIN` if the username is not set.
@@ -290,10 +286,6 @@ public class ClientGRPC {
                             Logging.logService("Pick your username.");
                             String localUsername = inputReader.nextLine();
                             client.createAccount(localUsername);
-
-                            //TODO: Log in the user
-                            // loginRequest = new LoginRequest(localUsername);
-                            // statusResponse = new StatusMessageResponse(responses);
                         }
                         // Set status to logged in.
                         // client.loginAPI(loginRequest, statusResponse);
@@ -315,8 +307,7 @@ public class ClientGRPC {
     static class MessageReceiverImpl extends MessageReceiverGrpc.MessageReceiverImplBase {
         @Override
         public void sendMessage(Message req, StreamObserver<StatusReply> responseObserver) {
-            Logging.logInfo(String.format("Received message from [%s] %d:\t%s",
-                    req.getSender(),req.getSentTimestamp(),req.getMessage()));
+            GRPCUtil.printMessage(req);
             responseObserver.onNext(GRPCUtil.genSuccessfulReply());
             responseObserver.onCompleted();
         }

@@ -86,8 +86,7 @@ message SendMessageRequest {
 
 message LoginRequest {
   string ip_address = 1;
-  int32 connection_id = 2;
-  string username = 3;
+  string username = 2;
 }
 
 message LogoutRequest {
