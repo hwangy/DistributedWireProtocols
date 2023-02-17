@@ -78,7 +78,7 @@ public class ServerGRPC {
      * As such, comments for the methods are largely omitted, except where
      * something interesting happens (e.g. launching the message handler).
      */
-    static class MessageServerImpl extends MessengerGrpc.MessengerImplBase {
+    public static class MessageServerImpl extends MessengerGrpc.MessengerImplBase {
 
         private final ServerCore core;
 
@@ -94,9 +94,11 @@ public class ServerGRPC {
         public void createAccount(CreateAccountRequest req, StreamObserver<LoginReply> responseObserver) {
             LoginReply reply = core.createAccountAPI(req);
             responseObserver.onNext(reply);
-            MessageHandler handler = new MessageHandler(core, req.getUsername(),
-                    new Address(req.getIpAddress(), reply.getReceiverPort()));
-            new Thread(handler).start();
+            if (!req.getIpAddress().isEmpty()) {
+                MessageHandler handler = new MessageHandler(core, req.getUsername(),
+                        new Address(req.getIpAddress(), reply.getReceiverPort()));
+                new Thread(handler).start();
+            }
             responseObserver.onCompleted();
         }
 
@@ -104,9 +106,11 @@ public class ServerGRPC {
         public void login(LoginRequest req, StreamObserver<LoginReply> responseObserver) {
             LoginReply reply = core.loginUserAPI(req);
             responseObserver.onNext(reply);
-            MessageHandler handler = new MessageHandler(core, req.getUsername(),
-                    new Address(req.getIpAddress(), reply.getReceiverPort()));
-            new Thread(handler).start();
+            if (!req.getIpAddress().isEmpty()) {
+                MessageHandler handler = new MessageHandler(core, req.getUsername(),
+                        new Address(req.getIpAddress(), reply.getReceiverPort()));
+                new Thread(handler).start();
+            }
             responseObserver.onCompleted();
         }
 
