@@ -310,3 +310,13 @@ This was fixed by holding onto a handle of the server, and calling shutdown on d
 
 > **Enhancement** Messages addressed to non-existent users should fail
 > Previously, you are able to send messages to non-existent users. This has been fixed.
+
+> **Bug** We encountered an issue where we saw an error `HTTP/2 client preface string missing or corrupt.`.
+
+From searching on Google, this seems to be often caused by an issue where one side of the connection is
+using TLS and the other is just plain text. However, this was not fixed by setting `.usePlainText()`
+on the connection side. The way we were initializing our server seemed exactly the same as the example on
+the gRPC website which was confusing.
+
+In the end, I was able to fix it by using a slightly different constructor for the server, which uses a
+`ServerBuilder` not the `Grpc.newServerBuilderForPort`.
