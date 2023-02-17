@@ -261,17 +261,19 @@ public class ServerCore {
     public StatusReply sendMessageAPI(SendMessageRequest request) {
         Message message = request.getMessage();
 
-        if (loggedInUsers.containsKey(message.getRecipient())) {
+        Status status;
+        if (!allAccounts.contains(message.getRecipient())) {
+            status = Status.newBuilder().setSuccess(false).setMessage("Recipient does not exist.").build();
+        } else if (loggedInUsers.containsKey(message.getRecipient())) {
             // If the user is logged in, immediately send the message.
             addMessageToList(queuedMessagesMap, message);
-            Status status = Status.newBuilder().setSuccess(true).setMessage("Message sent successfully.").build();
-            return StatusReply.newBuilder().setStatus(status).build();
+            status = Status.newBuilder().setSuccess(true).setMessage("Message sent successfully.").build();
         } else {
             // Otherwise add to undelivered messages for future delivery
             addMessageToList(undeliveredMessages, message);
-            Status status = Status.newBuilder().setSuccess(true).setMessage("Message queued for delivery.").build();
-            return StatusReply.newBuilder().setStatus(status).build();
+            status = Status.newBuilder().setSuccess(true).setMessage("Message queued for delivery.").build();
         }
+        return StatusReply.newBuilder().setStatus(status).build();
     }
 
     /**

@@ -307,3 +307,6 @@ maintains this list, and the port the client should use is passed back as part o
 > exception.
 
 This was fixed by holding onto a handle of the server, and calling shutdown on deleting or logging out.
+
+> **Enhancement** Messages addressed to non-existent users should fail
+> Previously, you are able to send messages to non-existent users. This has been fixed.
