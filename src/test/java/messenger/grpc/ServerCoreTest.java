@@ -1,8 +1,6 @@
-package messenger;
+package messenger.grpc;
 
-import messenger.helper.TestUtils;
-import messenger.objects.Message;
-import messenger.objects.response.*;
+import messenger.TestUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,10 +36,10 @@ public class ServerCoreTest {
     @Test
     void testCreateDuplicate() {
         server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser));
-        CreateAccountResponse response = server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser));
+        LoginReply response = server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser));
 
         // The second attempt to create a user should fail
-        Assertions.assertFalse(response.isSuccessful());
+        Assertions.assertFalse(response.getStatus().getSuccess());
 
         // But the first user should still be contained in the list
         Assertions.assertTrue(server.getAccounts().contains(TestUtils.testUser));
@@ -70,8 +68,8 @@ public class ServerCoreTest {
      */
     @Test
     void testDeletingNonExistentUser() {
-        DeleteUserResponse response = server.deleteAccountAPI(TestUtils.testDeleteUserRequest(TestUtils.testUser));
-        Assertions.assertFalse(response.isSuccessful());
+        StatusReply response = server.deleteAccountAPI(TestUtils.testDeleteUserRequest(TestUtils.testUser));
+        Assertions.assertFalse(response.getStatus().getSuccess());
     }
 
     /**
@@ -84,8 +82,8 @@ public class ServerCoreTest {
         server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser));
         server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testSecondUser));
 
-        GetAccountsResponse response = server.getAccountsAPI(TestUtils.testGetAllAccountsRequest());
-        Assertions.assertEquals(2, response.getMessages().size());
+        GetAccountsReply response = server.getAccountsAPI(TestUtils.testGetAllAccountsRequest());
+        Assertions.assertEquals(2, response.getAccountsList().size());
     }
 
     /**
@@ -99,8 +97,8 @@ public class ServerCoreTest {
         server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testSecondUser));
         server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.uniquePrefixUser));
 
-        GetAccountsResponse response = server.getAccountsAPI(TestUtils.testGetAccountsMatchUniquePrefix());
-        Assertions.assertEquals(1, response.getMessages().size());
+        GetAccountsReply response = server.getAccountsAPI(TestUtils.testGetAccountsMatchUniquePrefix());
+        Assertions.assertEquals(1, response.getAccountsList().size());
     }
 
     /**
@@ -109,12 +107,17 @@ public class ServerCoreTest {
      */
     @Test
     void testSendMessageNotLoggedIn() {
-        Assertions.assertTrue(server.sendMessageAPI(TestUtils.testSendToTestUser()).isSuccessful());
+        // Create and log out the user
+        server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser));
+        server.logoutUserAPI(TestUtils.testLogoutTestUser());
 
-        GetUndeliveredMessagesResponse response = server.getUndeliveredMessagesAPI(
+        Assertions.assertTrue(server.sendMessageAPI(TestUtils.testSendToTestUser())
+                .getStatus().getSuccess());
+
+        GetUndeliveredMessagesReply response = server.getUndeliveredMessagesAPI(
                 TestUtils.testGetUndeliveredMessagesToTestUser());
-        Assertions.assertTrue(response.isSuccessful());
-        List<Message> messages = response.getMessages();
+        Assertions.assertTrue(response.getStatus().getSuccess());
+        List<Message> messages = response.getMessagesList();
         Assertions.assertEquals(1, messages.size());
         Assertions.assertEquals(TestUtils.testMessage, messages.get(0).getMessage());
     }
@@ -157,7 +160,7 @@ public class ServerCoreTest {
      */
     @Test
     void testLoginNotCreateUser() {
-        LoginResponse response = server.loginUserAPI(TestUtils.testLoginRequest(TestUtils.testUser));
-        Assertions.assertFalse(response.isSuccessful());
+        LoginReply response = server.loginUserAPI(TestUtils.testLoginRequest(TestUtils.testUser));
+        Assertions.assertFalse(response.getStatus().getSuccess());
     }
 }

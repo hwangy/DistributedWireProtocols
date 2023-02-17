@@ -1,11 +1,7 @@
-package messenger.helper;
+package messenger;
 
-import messenger.api.API;
-import messenger.api.APIException;
-import messenger.objects.request.*;
-import messenger.objects.response.StatusMessageResponse;
-
-import java.util.Arrays;
+import messenger.grpc.*;
+import messenger.util.Constants;
 
 /**
  * Basic test utilities
@@ -16,21 +12,18 @@ public class TestUtils {
     public static final String uniquePrefixUser = "userTest";
     public static final String matchingPrefix = "user.*";
     public static final String testMessage = "test message";
+    public static final String testIpAddress = "127.0.0.1";
+    public static final int testPort = Constants.MESSAGE_PORT;
 
     /**
-     * Creates a simple CreateUserRequest
+     * Creates a simple CreateAccountRequest
      * @param username  Username for the request
-     * @return          a createUserRequest
+     * @return          a createAccountRequest
      */
     public static CreateAccountRequest testCreateUserRequest(String username) {
-        try {
-            Request request = new Request(API.CREATE_ACCOUNT.getIdentifier(),
-                    Arrays.asList(username));
-            return new CreateAccountRequest(request);
-        } catch (APIException ex) {
-            // This should never happen
-            return null;
-        }
+        return CreateAccountRequest.newBuilder()
+                .setIpAddress(testIpAddress)
+                .setUsername(username).build();
     }
 
     /**
@@ -39,14 +32,9 @@ public class TestUtils {
      * @return          a deleteUserRequest
      */
     public static DeleteAccountRequest testDeleteUserRequest(String username) {
-        try {
-            Request request = new Request(API.DELETE_ACCOUNT.getIdentifier(),
-                    Arrays.asList(username));
-            return new DeleteAccountRequest(request);
-        } catch (APIException ex) {
-            // This should never happen
-            return null;
-        }
+        return DeleteAccountRequest.newBuilder()
+                .setUsername(username)
+                .build();
     }
 
     /**
@@ -55,13 +43,11 @@ public class TestUtils {
      * @return          a LoginRequest
      */
     public static LoginRequest testLoginRequest(String username) {
-        try {
-            Request request = new Request(API.LOGIN.getIdentifier(), Arrays.asList(username));
-            return new LoginRequest(request);
-        } catch (APIException ex) {
-            // This should never happen
-            return null;
-        }
+        return LoginRequest.newBuilder().setIpAddress(testIpAddress).setUsername(username).build();
+    }
+
+    private static Status testSuccessfulStatus() {
+        return Status.newBuilder().setSuccess(true).build();
     }
 
     /**
@@ -69,12 +55,17 @@ public class TestUtils {
      * of an API call.
      * @return  A StatusMessageResponse object
      */
-    public static StatusMessageResponse testSuccessfulStatusMessageResponse() {
-        return new StatusMessageResponse(true, "success");
+    public static StatusReply testSuccessfulStatusMessageResponse() {
+        return StatusReply.newBuilder().setStatus(testSuccessfulStatus()).build();
+    }
+
+    public static LoginReply testSuccessfulLoginReply() {
+        return LoginReply.newBuilder().setReceiverPort(testPort).setStatus(testSuccessfulStatus())
+                .build();
     }
 
     public static GetAccountsRequest testGetAllAccountsRequest() {
-        return new GetAccountsRequest();
+        return GetAccountsRequest.newBuilder().setTextWildcard("").build();
     }
 
     /**
@@ -83,7 +74,7 @@ public class TestUtils {
      * @return  A GetAccountsRequest with wildcard "user.*"
      */
     public static GetAccountsRequest testGetAccountsMatchUniquePrefix() {
-        return new GetAccountsRequest(matchingPrefix);
+        return GetAccountsRequest.newBuilder().setTextWildcard(matchingPrefix).build();
     }
 
     /**
@@ -91,7 +82,10 @@ public class TestUtils {
      * @return  A SendMessageRequest.
      */
     public static SendMessageRequest testSendToTestUser() {
-        return new SendMessageRequest("",testUser,testMessage);
+        return SendMessageRequest.newBuilder().setMessage(Message.newBuilder()
+                .setSender("")
+                .setRecipient(testUser)
+                .setMessage(testMessage).build()).build();
     }
 
     /**
@@ -99,7 +93,9 @@ public class TestUtils {
      * @return  A GetUndeliveredMessagesRequest
      */
     public static GetUndeliveredMessagesRequest testGetUndeliveredMessagesToTestUser() {
-        return new GetUndeliveredMessagesRequest(testUser);
+        return GetUndeliveredMessagesRequest.newBuilder()
+                .setUsername(testUser)
+                .build();
     }
 
     /**
@@ -107,6 +103,6 @@ public class TestUtils {
      * @return  A LogoutRequest
      */
     public static LogoutRequest testLogoutTestUser() {
-        return new LogoutRequest(testUser);
+        return LogoutRequest.newBuilder().setUsername(testUser).build();
     }
 }

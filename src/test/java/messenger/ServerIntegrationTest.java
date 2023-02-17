@@ -1,7 +1,6 @@
 package messenger;
 
 import messenger.api.API;
-import messenger.helper.TestUtils;
 import messenger.network.Connection;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

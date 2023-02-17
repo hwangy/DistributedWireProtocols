@@ -95,7 +95,12 @@ public class ServerCore {
      */
     private LoginReply logInUser(String username, String ipAddress) {
         String message;
-        if (isLoggedIn(username)) {
+        if (!allAccounts.contains(username)) {
+            message = "User " + username + " does not exist and cannot be logged in.";
+            return LoginReply.newBuilder()
+                    .setStatus(Status.newBuilder().setSuccess(false).setMessage(message).build())
+                    .build();
+        } else if (isLoggedIn(username)) {
             message = "User " + username + " is already logged in.";
             return LoginReply.newBuilder()
                     .setStatus(Status.newBuilder().setSuccess(false).setMessage(message).build())

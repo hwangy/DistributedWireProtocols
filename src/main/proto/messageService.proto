@@ -48,12 +48,10 @@ message LoginReply {
 }
 
 message DeleteAccountRequest {
-  int32 connection_id = 1;
   string username = 2;
 }
 
 message GetAccountsRequest {
-  int32 connection_id = 1;
   string text_wildcard = 2;
 }
 
@@ -81,7 +79,6 @@ message Message {
 }
 
 message SendMessageRequest {
-  int32 connection_id = 1;
   Message message = 2;
 }
 
@@ -91,6 +88,5 @@ message LoginRequest {
 }
 
 message LogoutRequest {
-  int32 connection_id = 1;
   string username = 2;
 }
