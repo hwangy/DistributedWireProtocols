@@ -4,6 +4,8 @@ import messenger.grpc.Message;
 import messenger.grpc.Status;
 import messenger.grpc.StatusReply;
 
+import java.text.SimpleDateFormat;
+
 public class GRPCUtil {
     /**
      * Simple method to turn a Status into a StatusReply.
@@ -22,7 +24,8 @@ public class GRPCUtil {
     }
 
     public static void printMessage(Message message) {
-        Logging.logInfo(String.format("Received message from [%s] %d:\t%s",
-                message.getSender(),message.getSentTimestamp(),message.getMessage()));
+        String time = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(message.getSentTimestamp());
+        Logging.logInfo(String.format("Received message from [%s] %s:\t%s",
+                message.getSender(),time,message.getMessage()));
     }
 }

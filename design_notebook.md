@@ -289,3 +289,21 @@ One point of difference is the secondary service required to receive messages on
 easy to set up. The only part which was not completely straightfoward was creating the client on the Message Server.
 A new client needed to be created for each logged-in user; as such, whenever a login request or create account request
 is received, a new thread is started which acts as a message dispatcher for that specific user.
+
+## February 16th
+
+> **Bug** Address Already in Use Exception
+> This occurs on the client side when I attempt to connect a second client to the server, with both
+> clients on localhost.
+
+This bug occurs when two clients on the *same* IP address start the MessageReceiver. Since the port
+was fixed, they can't both listen on the same port. I fixed this bug by maintain a list of connected 
+IP addresses, and incrementing the port number for each connection on the same IP address. The server
+maintains this list, and the port the client should use is passed back as part of the `LoginReply`
+
+> **Bug** Starting a new MessageReceiver after deleting account
+> There is a bug where if a client deletes their account (and thereby not exiting the client entirely),
+> the old MessageReceiver has not been shut down, and a new one causes the `Address Already in Use`
+> exception.
+
+This was fixed by holding onto a handle of the server, and calling shutdown on deleting or logging out.

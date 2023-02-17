@@ -26,10 +26,11 @@ public class ClientGRPC {
 
     /**
      * Starts a service which allows the client to receive messages from the server.
+     * @param port          The port on which to start the receiver
      * @throws IOException  Thrown on network exception.
      */
-    private static void startMessageReceiver() throws IOException {
-        Grpc.newServerBuilderForPort(Constants.MESSAGE_PORT, InsecureServerCredentials.create())
+    private static Server startMessageReceiver(int port) throws IOException {
+        Server server = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
                 .addService(new MessageReceiverImpl())
                 .build()
                 .start();
@@ -42,6 +43,7 @@ public class ClientGRPC {
                 System.err.println("*** server shut down");
             }
         });
+        return server;
     }
 
     /**
@@ -50,8 +52,9 @@ public class ClientGRPC {
      * client-connection back to this client, in order to send messages addressed to this
      * client.
      * @param username  The username to associate to this client.
+     * @return int      The port on which to start the MessageReceiver
      */
-    public void createAccount(String username) {
+    public int createAccount(String username) {
         // Try to fetch the local IP address to provide to server
         String ipAddress = null;
         try {
@@ -67,13 +70,13 @@ public class ClientGRPC {
         LoginReply response;
         try {
             response = blockingStub.createAccount(request);
+            // Log in the user
+            core.setLoggedInStatus(username, response);
+            return response.getReceiverPort();
         } catch (StatusRuntimeException e) {
             Logging.logInfo("RPC failed: " + e.getStatus());
-            return;
+            return -1;
         }
-
-        // Log in the user
-        core.setLoggedInStatus(username, response);
     }
 
     /**
@@ -82,18 +85,16 @@ public class ClientGRPC {
      */
     public void deleteAccount(String username) {
         DeleteAccountRequest request = DeleteAccountRequest.newBuilder()
-                .setConnectionId(core.getConnectionId())
                 .setUsername(username)
                 .build();
         StatusReply response;
         try {
             response = blockingStub.deleteAccount(request);
+            Logging.logService(response.getStatus().getMessage());
+            core.setLoggedOutStatus(response);
         } catch (StatusRuntimeException e) {
             Logging.logInfo("RPC failed: " + e.getStatus());
-            return;
         }
-
-        Logging.logService(response.getStatus().getMessage());
     }
 
     /**
@@ -103,19 +104,19 @@ public class ClientGRPC {
      */
     public void getAccounts(String text_wildcard) {
         GetAccountsRequest request = GetAccountsRequest.newBuilder()
-            .setConnectionId(core.getConnectionId())
             .setTextWildcard(text_wildcard)
             .build();
         GetAccountsReply response;
         try {
             response = blockingStub.getAccounts(request);
+
+            Logging.logService("Found accounts: ");
+            for (String account : response.getAccountsList()) {
+                Logging.logService("\t" + account);
+            }
         } catch (StatusRuntimeException e) {
             Logging.logInfo("RPC failed: " + e.getStatus());
             return;
-        }
-        Logging.logService("Found accounts: ");
-        for (String account : response.getAccountsList()) {
-            Logging.logService("\t" + account);
         }
     }
 
@@ -126,7 +127,6 @@ public class ClientGRPC {
      */
     public void getUndeliveredMessages(String username) {
         GetUndeliveredMessagesRequest request = GetUndeliveredMessagesRequest.newBuilder()
-            .setConnectionId(core.getConnectionId())
             .setUsername(username)
             .build();
         GetUndeliveredMessagesReply response;
@@ -155,7 +155,6 @@ public class ClientGRPC {
             .setMessage(message)
             .build();
         SendMessageRequest request = SendMessageRequest.newBuilder()
-            .setConnectionId(core.getConnectionId())
             .setMessage(message_object)
             .build();
         StatusReply response;
@@ -174,8 +173,9 @@ public class ClientGRPC {
      * client-connection back to this client, in order to send messages addressed to this
      * client.
      * @param username  The username to associate to this client.
+      * @return int      The port on which to start the MessageReceiver
      */
-    public void login(String username) {
+    public int login(String username) {
         // Try to fetch the local IP address to provide to server
         String ipAddress = null;
         try {
@@ -193,12 +193,12 @@ public class ClientGRPC {
 
         try {
             response = blockingStub.login(request);
+            core.setLoggedInStatus(username, response);
+            return response.getReceiverPort();
         } catch (StatusRuntimeException e) {
             Logging.logInfo("RPC failed: " + e.getStatus());
-            return;
+            return -1;
         }
-
-        core.setLoggedInStatus(username, response);
     }
 
      /**
@@ -207,7 +207,6 @@ public class ClientGRPC {
      */
     public void logout(String username) {
         LogoutRequest request = LogoutRequest.newBuilder()
-                .setConnectionId(core.getConnectionId())
                 .setUsername(username)
                 .build();
         StatusReply response;
@@ -219,6 +218,7 @@ public class ClientGRPC {
             return;
         }
 
+        // Logout the user
         core.setLoggedOutStatus(response);
     }
 
@@ -254,6 +254,7 @@ public class ClientGRPC {
 
         try {
             ClientGRPC client = new ClientGRPC(channel);
+            Server server = null;
             while (true) {
                 System.out.println(options);
 
@@ -277,21 +278,19 @@ public class ClientGRPC {
                         Logging.logService("Please first create a username or log in, by selecting option "
                                 + API.CREATE_ACCOUNT.getIdentifier() + " or " + API.LOGIN.getIdentifier());
                     } else {
-                        // Start the service to receive messages
-                        startMessageReceiver();
-
-                        LoginRequest loginRequest;
-                        StatusMessageResponse statusResponse;
+                        int port;
                         if (method == API.CREATE_ACCOUNT) {
                             Logging.logService("Pick your username.");
-                            String localUsername = inputReader.nextLine();
-                            client.createAccount(localUsername);
+                            port = client.createAccount(inputReader.nextLine());
                         } else {
                             Logging.logService("Select the username.");
-                            username = inputReader.nextLine();
-                            Logging.logService("Attempting to log in...");
-                            client.login(username);
+                            port = client.login(inputReader.nextLine());
                         }
+                        // Start the service to receive messages
+                        if (port > 0) {
+                            server = startMessageReceiver(port);
+                        }
+
                     }
                 } else {
                     // Username is already set and the user is logged in.
@@ -299,12 +298,14 @@ public class ClientGRPC {
                         Logging.logService("You are already logged in as " + username + ". " +
                                 "You may only create an account or login from a un-logged-in state.");
                     } else if (method == API.LOGOUT) {
-
                         String localUsername = client.core.getUsername();
                         Logging.logService("Logging out of the account associated to the username: " +
                                 localUsername);
 
                         client.logout(localUsername);
+                        if (server != null) {
+                            server.shutdownNow();
+                        }
                         inputReader.close();
                         break;
 
@@ -338,7 +339,10 @@ public class ClientGRPC {
                     } else if (method == API.DELETE_ACCOUNT) {
                         Logging.logService("Deleting the account associated to the username: " + username);
                         client.deleteAccount(username);
-
+                        if (server != null) {
+                            server.shutdownNow();
+                            server = null;
+                        }
                     }
  
                 }

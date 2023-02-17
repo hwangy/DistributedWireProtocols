@@ -1,30 +1,88 @@
 package messenger.grpc;
 
+import messenger.network.Address;
+import messenger.util.Constants;
 import messenger.util.Logging;
 
 import java.util.*;
 
 public class ServerCore {
-    private int nextConnectionId;
     private final Map<String, List<Message>> sentMessages;
     private final Map<String, List<Message>> queuedMessagesMap;
 
     private final Map<String, List<Message>> undeliveredMessages;
-    private final Set<String> loggedInUsers;
-    /** idToUserMap is a map from session IDs to users. 
-    It stores the current sessions and which users correspond to each session.
-    */
-    private final Map<Integer, String> idToUserMap;
+    private final Map<String, Address> loggedInUsers;
+    /**
+     * Stores a map of connected IP addresses as well as ports. This allows
+     * the server to assign a unique port if the IP address is repeated
+     */
+    private final Map<String, List<Integer>> ipToPorts;
     private final Set<String> allAccounts;
 
     public ServerCore() {
-        nextConnectionId = 0;
         this.sentMessages = new HashMap<>();
         this.queuedMessagesMap = new HashMap<>();
         this.undeliveredMessages = new HashMap<>();
-        this.loggedInUsers = new HashSet<>();
+        this.loggedInUsers = new HashMap<>();
         this.allAccounts = new HashSet<>();
-        this.idToUserMap = new HashMap<>();
+        this.ipToPorts = new HashMap<>();
+    }
+
+    /**
+     * Returns the next port to assign to a user, assuming
+     * the other ports in the list have been assigned. This
+     * method assumes incoming list is sorted. Thus, this method
+     * just needs to find the first "gap" in the list of ports.
+     * @param assignedPorts The list of ports to check
+     * @return              The next unassigned port.
+     */
+    private int nextPortInList(List<Integer> assignedPorts) {
+        int port = Constants.MESSAGE_PORT;
+        for (Integer currentPort : assignedPorts) {
+            if (currentPort == port) {
+                port++;
+            } else {
+                break;
+            }
+        }
+        return port;
+    }
+
+    /**
+     * Returns the next available port on the IP Address
+     * @param ipAddress The ip address to check
+     * @return          Next available port, starting from Constants.MESSAGE_PORT
+     */
+    private int assignPort(String ipAddress) {
+        List<Integer> ports;
+        if (ipToPorts.containsKey(ipAddress)) {
+            ports = ipToPorts.get(ipAddress);
+        } else {
+            ports = new ArrayList<>();
+            ipToPorts.put(ipAddress, ports);
+        }
+        int nextPort = nextPortInList(ports);
+        ports.add(nextPort);
+        return nextPort;
+    }
+
+    /**
+     * Removes the given user from the logged in users by removing
+     * their stored connection information (ip address and port). This
+     * also frees up the port for future connections on the same port.
+     * @param username  The username to log out.
+     */
+    private void removeUserConnection(String username) {
+        if (!loggedInUsers.containsKey(username)) return;
+        Address address = loggedInUsers.remove(username);
+        List<Integer> ports = ipToPorts.get(address.getIpAddress());
+        ports.remove((Integer) address.getPort());
+        if (ports.size() == 0) {
+            // If the size of the ports list is 0 after
+            // removing this port, remove the IP address from
+            // the list
+            ipToPorts.remove(address.getIpAddress());
+        }
     }
 
     /**
@@ -32,26 +90,25 @@ public class ServerCore {
      * as well as creating an entry in idToUserMap, with a
      * generated connection id.
      * @param username      The username of user
+     * @param ipAddress     The ip address of the user
      * @return              A LoginReply indicating status of the login request.
      */
-    private LoginReply logInUser(String username) {
-        Boolean success = false;
-        Integer connectionId = null;
+    private LoginReply logInUser(String username, String ipAddress) {
         String message;
         if (isLoggedIn(username)) {
             message = "User " + username + " is already logged in.";
+            return LoginReply.newBuilder()
+                    .setStatus(Status.newBuilder().setSuccess(false).setMessage(message).build())
+                    .build();
         } else {
-            connectionId = nextConnectionId++;
-            Logging.logInfo(String.format("Assigning id %d to user %s.", connectionId, username));
-            loggedInUsers.add(username);
-            idToUserMap.put(connectionId, username);
+            int port = assignPort(ipAddress);
+            Logging.logInfo(String.format("Assigning port %d to user %s.", port, username));
+            loggedInUsers.put(username, new Address(ipAddress, port));
             message = "User " + username + " logged in successfully";
-        }
-        Status status = Status.newBuilder().setSuccess(success).setMessage(message).build();
-        if (success) {
-            return LoginReply.newBuilder().setConnectionId(connectionId).setStatus(status).build();
-        } else {
-            return LoginReply.newBuilder().setStatus(status).build();
+            return LoginReply.newBuilder()
+                    .setReceiverPort(port)
+                    .setStatus(Status.newBuilder().setSuccess(true).setMessage(message).build())
+                    .build();
         }
     }
 
@@ -103,7 +160,7 @@ public class ServerCore {
     }
 
     public Boolean isLoggedIn(String username) {
-        return loggedInUsers.contains(username);
+        return loggedInUsers.containsKey(username);
     }
 
     /**
@@ -146,7 +203,8 @@ public class ServerCore {
             Status status = Status.newBuilder().setSuccess(false).setMessage(message).build();
             return LoginReply.newBuilder().setStatus(status).build();
         } else {
-            return logInUser(username);
+            allAccounts.add(username);
+            return logInUser(username, request.getIpAddress());
         }
     }
 
@@ -162,8 +220,7 @@ public class ServerCore {
         Boolean success = false;
         if (allAccounts.contains(username)) {
             allAccounts.remove(username);
-            // Also remove from logged-in users if logged in.
-            loggedInUsers.remove(username);
+            removeUserConnection(username);
 
             success = true;
             message = "User " + username + " deleted.";
@@ -172,7 +229,6 @@ public class ServerCore {
         }
         // Delete user from user map
         Logging.logInfo(String.format("Deleting user %s.", username));
-        idToUserMap.remove(request.getConnectionId());
         Status status = Status.newBuilder().setSuccess(success).setMessage(message).build();
         return StatusReply.newBuilder().setStatus(status).build();
     }
@@ -205,7 +261,7 @@ public class ServerCore {
     public StatusReply sendMessageAPI(SendMessageRequest request) {
         Message message = request.getMessage();
 
-        if (loggedInUsers.contains(message.getRecipient())) {
+        if (loggedInUsers.containsKey(message.getRecipient())) {
             // If the user is logged in, immediately send the message.
             addMessageToList(queuedMessagesMap, message);
             Status status = Status.newBuilder().setSuccess(true).setMessage("Message sent successfully.").build();
@@ -226,7 +282,7 @@ public class ServerCore {
      * @return          A status message indicating success or failure.
      */
     public LoginReply loginUserAPI(LoginRequest request) {
-        return logInUser(request.getUsername());
+        return logInUser(request.getUsername(), request.getIpAddress());
     }
 
     /**
@@ -241,8 +297,7 @@ public class ServerCore {
         if (!isLoggedIn(username)) {
             message = "User " + username + " is not logged in and cannot be logged out.";
         } else {
-            loggedInUsers.remove(username);
-            idToUserMap.remove(request.getConnectionId());
+            removeUserConnection(username);
             message = "User " + username + " logged out successfully.";
         }
         return StatusReply.newBuilder().setStatus(Status.newBuilder()

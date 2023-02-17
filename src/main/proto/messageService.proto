@@ -39,11 +39,11 @@ message CreateAccountRequest {
   string username = 2;
 }
 
-// When a user logs in, a unique identifier is provided from the server
-// to the client. This id should be used for future communication. The
-// connection_id will only be set if the Status is successful.
+// When the user logs in, the client replies with a unique
+// port (if the IP address is duplicated) for the client to use
+// to establish the MessageReceiver.
 message LoginReply {
-  optional int32 connection_id = 1;
+  int32 receiver_port = 1;
   Status status = 2;
 }
 

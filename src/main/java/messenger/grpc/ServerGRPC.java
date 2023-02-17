@@ -2,6 +2,7 @@ package messenger.grpc;
 
 import io.grpc.*;
 import io.grpc.stub.StreamObserver;
+import messenger.network.Address;
 import messenger.util.Constants;
 import messenger.util.Logging;
 
@@ -91,16 +92,20 @@ public class ServerGRPC {
          */
         @Override
         public void createAccount(CreateAccountRequest req, StreamObserver<LoginReply> responseObserver) {
-            responseObserver.onNext(core.createAccountAPI(req));
-            MessageHandler handler = new MessageHandler(core, req.getUsername(), req.getIpAddress());
+            LoginReply reply = core.createAccountAPI(req);
+            responseObserver.onNext(reply);
+            MessageHandler handler = new MessageHandler(core, req.getUsername(),
+                    new Address(req.getIpAddress(), reply.getReceiverPort()));
             new Thread(handler).start();
             responseObserver.onCompleted();
         }
 
         @Override
         public void login(LoginRequest req, StreamObserver<LoginReply> responseObserver) {
-            responseObserver.onNext(core.loginUserAPI(req));
-            MessageHandler handler = new MessageHandler(core, req.getUsername(), req.getIpAddress());
+            LoginReply reply = core.loginUserAPI(req);
+            responseObserver.onNext(reply);
+            MessageHandler handler = new MessageHandler(core, req.getUsername(),
+                    new Address(req.getIpAddress(), reply.getReceiverPort()));
             new Thread(handler).start();
             responseObserver.onCompleted();
         }
@@ -150,12 +155,11 @@ public class ServerGRPC {
 
         private final MessageReceiverGrpc.MessageReceiverBlockingStub blockingStub;
 
-        public MessageHandler(ServerCore server, String username, String ipAddress) {
+        public MessageHandler(ServerCore server, String username, Address address) {
             this.server = server;
             this.username = username;
 
-            String target = String.format("%s:%d", ipAddress, Constants.MESSAGE_PORT);
-            ManagedChannel channel = Grpc.newChannelBuilder(target, InsecureChannelCredentials.create())
+            ManagedChannel channel = Grpc.newChannelBuilder(address.toString(), InsecureChannelCredentials.create())
                     .build();
             blockingStub = MessageReceiverGrpc.newBlockingStub(channel);
         }
@@ -172,7 +176,6 @@ public class ServerGRPC {
             } else {
                 Logging.logInfo("Message failed to send to " + username);
             }
-            // TODO: Populate the sent-timestamp
         }
 
         /**

@@ -6,21 +6,13 @@ public class ClientCore {
 
     // The username associated with the current session
     private String username;
-    // The connection ID associated with the current session.
-    // This value is assigned by the Server.
-    private Integer connectionId;
 
     public ClientCore() {
         this.username = null;
-        this.connectionId = null;
     }
 
     public String getUsername() {
         return this.username;
-    }
-
-    public Integer getConnectionId() {
-        return this.connectionId;
     }
 
     /**
@@ -45,7 +37,6 @@ public class ClientCore {
             // Log in the user with the connection ID retrieved
             // from the server.
             this.username = username;
-            connectionId = response.getConnectionId();
         }
 
         Logging.logService(status.getMessage());
@@ -54,9 +45,8 @@ public class ClientCore {
 
     public Boolean setLoggedOutStatus(StatusReply response) {
         Boolean success = response.getStatus().getSuccess();
-        if(success) {
-            this.username = null;
-            this.connectionId = null;
+        if (success) {
+            username = null;
         }
 
         Logging.logService(response.getStatus().getMessage());
