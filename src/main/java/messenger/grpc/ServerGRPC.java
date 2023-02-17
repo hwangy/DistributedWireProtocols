@@ -23,11 +23,8 @@ public class ServerGRPC {
      */
     private void start() throws IOException {
         ServerCore core = new ServerCore();
-        /* The port on which the server should run */
-        server = Grpc.newServerBuilderForPort(Constants.API_PORT, InsecureServerCredentials.create())
-                .addService(new MessageServerImpl(core))
-                .build()
-                .start();
+        server = ServerBuilder.forPort(Constants.API_PORT)
+                .addService(new MessageServerImpl(core)).build().start();
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -163,8 +160,8 @@ public class ServerGRPC {
             this.server = server;
             this.username = username;
 
-            ManagedChannel channel = Grpc.newChannelBuilder(address.toString(), InsecureChannelCredentials.create())
-                    .build();
+            ManagedChannel channel = ManagedChannelBuilder.forAddress(address.getIpAddress(), address.getPort())
+                    .usePlaintext().build();
             blockingStub = MessageReceiverGrpc.newBlockingStub(channel);
         }
 

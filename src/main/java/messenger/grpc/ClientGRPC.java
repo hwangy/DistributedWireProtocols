@@ -4,7 +4,6 @@ import io.grpc.*;
 import io.grpc.stub.StreamObserver;
 import messenger.api.API;
 import messenger.network.NetworkUtil;
-import messenger.objects.response.StatusMessageResponse;
 import messenger.util.Constants;
 import messenger.util.GRPCUtil;
 import messenger.util.Logging;
@@ -30,10 +29,8 @@ public class ClientGRPC {
      * @throws IOException  Thrown on network exception.
      */
     private static Server startMessageReceiver(int port) throws IOException {
-        Server server = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
-                .addService(new MessageReceiverImpl())
-                .build()
-                .start();
+        Server server = ServerBuilder.forPort(port)
+                .addService(new MessageReceiverImpl()).build().start();
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -58,6 +55,7 @@ public class ClientGRPC {
         // Try to fetch the local IP address to provide to server
         String ipAddress = null;
         try {
+            Logging.logInfo("Got here.");
             ipAddress = NetworkUtil.getLocalIPAddress();
             Logging.logInfo("Got IP Address: " + ipAddress);
         } catch (UnknownHostException ex) {
@@ -239,8 +237,9 @@ public class ClientGRPC {
         //
         // For the example we use plaintext insecure credentials to avoid needing TLS certificates. To
         // use TLS, use TlsChannelCredentials instead.
-        ManagedChannel channel = Grpc.newChannelBuilder(target, InsecureChannelCredentials.create())
-                .build();
+        ManagedChannel channel = ManagedChannelBuilder.forAddress(address, Constants.API_PORT)
+                .usePlaintext().build();
+
 
         String options = "Pick an option:\n" +
                 "0. Exit (and log-out).\n" +
