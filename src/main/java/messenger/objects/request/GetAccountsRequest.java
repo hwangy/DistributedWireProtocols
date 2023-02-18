@@ -45,11 +45,19 @@ public class GetAccountsRequest implements MethodRequestInterface {
         }
     }
 
+    /**
+     * Gets the identifier associated to Get Accounts
+     * @return The identifier
+     */
     @Override
     public int getIdentifier() {
         return API.GET_ACCOUNTS.getIdentifier();
     }
 
+    /**
+     * Creates a generic request assocated with the request
+     * @return The generic request assocated with the request
+     */
     @Override
     public Request genGenericRequest() {
         return new Request(getIdentifier(), Arrays.asList(textWildcard));

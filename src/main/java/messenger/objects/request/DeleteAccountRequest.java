@@ -28,6 +28,10 @@ public class DeleteAccountRequest extends SingleArgumentRequestWithUsername {
         super(request);
     }
     
+    /**
+     * Gets the identifier associated to Delete Account 
+     * @return The identifier
+     */
     @Override
     public int getIdentifier() {
         return API.DELETE_ACCOUNT.getIdentifier();
