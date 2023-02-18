@@ -3,6 +3,7 @@ package messenger.grpc;
 import io.grpc.*;
 import io.grpc.stub.StreamObserver;
 import messenger.network.Address;
+import messenger.network.NetworkUtil;
 import messenger.util.Constants;
 import messenger.util.Logging;
 
@@ -63,6 +64,7 @@ public class ServerGRPC {
     public static void main(String[] args) throws IOException, InterruptedException {
         final ServerGRPC server = new ServerGRPC();
         server.start();
+        Logging.logInfo("Server started on IP address: " + NetworkUtil.getLocalIPAddress());
         server.blockUntilShutdown();
     }
 
