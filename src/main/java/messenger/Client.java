@@ -188,6 +188,19 @@ public class Client {
                         GetUndeliveredMessagesRequest request = new GetUndeliveredMessagesRequest(username);
                         request.genGenericRequest().writeToStream(connection);
                         Response responses = Response.genResponse(connection);
+                        List<String> messageParts = responses.getResponses();
+
+                        // Build up a nicely formatted string message
+                        int messageNum = 1;
+                        while (messageNum < messageParts.size()) {
+                            Long timestamp = Long.valueOf(messageParts.get(messageNum - 1));
+                            String sender = messageParts.get(messageNum + 1);
+                            String message = messageParts.get(messageNum = 3);
+                            Logging.logService(new Message(timestamp, sender, "", message).toString());
+
+                            // There are five parts to each message
+                            messageNum+=5;
+                        }
                         responses.printResponses();
                     } else if (method ==API.DELETE_ACCOUNT) {
                         System.out.println("Deleting the account associated to the username: " + username);
