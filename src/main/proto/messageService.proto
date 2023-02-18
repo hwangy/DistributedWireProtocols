@@ -6,6 +6,9 @@ option java_outer_classname = "MessengerProto";
 
 package grpc;
 
+// The Messenger service which contains all of the methods of
+// creating an account, deleting an account, getting accounts with a text wildcard,
+// getting undelivered messages for a user, sending messages, logging in, and logging out.
 service Messenger {
   rpc CreateAccount (CreateAccountRequest) returns (LoginReply) {}
   rpc DeleteAccount (DeleteAccountRequest) returns (StatusReply) {}
