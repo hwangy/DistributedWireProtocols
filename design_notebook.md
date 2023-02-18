@@ -320,3 +320,19 @@ the gRPC website which was confusing.
 
 In the end, I was able to fix it by using a slightly different constructor for the server, which uses a
 `ServerBuilder` not the `Grpc.newServerBuilderForPort`.
+
+## February 18th
+
+We are now wrapping up our implementation of the design exercise with gRPC, and are ready to compare the complexity of the code (our first implementation vs gRPC implementation), any performance differences, and the size of the buffers being sent back and forth between the client and the server. 
+
+### The complexity of the code
+
+here
+
+### Performance differences
+
+here
+
+### The size of the buffers being sent back and forth between the client and the server
+
+here
