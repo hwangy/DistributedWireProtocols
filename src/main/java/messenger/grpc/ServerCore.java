@@ -231,6 +231,8 @@ public class ServerCore {
         Boolean success = false;
         if (allAccounts.contains(username)) {
             allAccounts.remove(username);
+            // Also clear undelivered messages
+            undeliveredMessages.remove(username);
             removeUserConnection(username);
 
             success = true;
@@ -259,6 +261,9 @@ public class ServerCore {
             messages = new ArrayList<>();
         }
         Status status = Status.newBuilder().setSuccess(true).setMessage("Retrieving undelivered messages.").build();
+
+        // Clear the undelivered messages
+        undeliveredMessages.remove(username);
         return GetUndeliveredMessagesReply.newBuilder().setStatus(status).addAllMessages(messages).build();
     }
 

@@ -238,6 +238,25 @@ public class ServerCoreTest {
 
         // User 4 should get port Constants.MESSAGE_PORT + 2
         Assertions.assertTrue(fourthResponse.getReceiverPort() == Constants.MESSAGE_PORT + 2);
+    }
 
+    /**
+     * Ensure that undelivered messages are only delivered once.
+     */
+    @Test
+    void testGetUndeliveredMessages () {
+        server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser, TestUtils.testIpAddress));
+        // Log out the first user
+        server.logoutUserAPI(TestUtils.testLogoutTestUser());
+        // This message should be undelivered
+        server.sendMessageAPI(TestUtils.testSendToTestUser());
+        GetUndeliveredMessagesReply reply =
+                server.getUndeliveredMessagesAPI(TestUtils.testGetUndeliveredMessagesToTestUser());
+        Assertions.assertEquals(1, reply.getMessagesList().size());
+
+        // Now that we've gotten the messages, the length should be 0
+        reply =
+                server.getUndeliveredMessagesAPI(TestUtils.testGetUndeliveredMessagesToTestUser());
+        Assertions.assertEquals(0, reply.getMessagesList().size());
     }
 }
