@@ -1,4 +1,5 @@
 package messenger;
+
 import messenger.api.APIException;
 import messenger.network.Connection;
 import messenger.objects.*;
@@ -157,7 +158,7 @@ public class Client {
                         } else{
                             System.out.println("Text wildcard: " + text_wildcard);
                         }
-
+                        
                         // Make sure to handle case of text wildcard empty (search everything) or nonempty.
                         // And are there text wildcards we would disallow or that could cause issues?
                         GetAccountsRequest request = new GetAccountsRequest(text_wildcard);

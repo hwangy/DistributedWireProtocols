@@ -1,6 +1,6 @@
-package messenger;
+package messenger.grpc;
 
-import messenger.helper.TestUtils;
+import messenger.TestUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 class ClientTest {
@@ -14,8 +14,7 @@ class ClientTest {
         // Starts off not logged in.
         Assertions.assertFalse(client.isLoggedIn());
 
-        client.loginAPI(TestUtils.testLoginRequest(TestUtils.testUser),
-                TestUtils.testSuccessfulStatusMessageResponse());
+        client.setLoggedInStatus(TestUtils.testUser, TestUtils.testSuccessfulLoginReply());
         // Is logged in after login request is executed.
         Assertions.assertTrue(client.isLoggedIn());
     }
@@ -23,12 +22,11 @@ class ClientTest {
     @Test
     void testLogout() {
         ClientCore client = new ClientCore();
-        client.loginAPI(TestUtils.testLoginRequest(TestUtils.testUser),
-                TestUtils.testSuccessfulStatusMessageResponse());
+        client.setLoggedInStatus(TestUtils.testUser, TestUtils.testSuccessfulLoginReply());
         // Should be logged in
         Assertions.assertTrue(client.isLoggedIn());
 
-        client.logoutAPI(TestUtils.testSuccessfulStatusMessageResponse());
+        client.setLoggedOutStatus(TestUtils.testSuccessfulStatusMessageResponse());
         Assertions.assertFalse(client.isLoggedIn());
     }
 
