@@ -12,10 +12,17 @@ Project 1 for Distributed Systems
    * Run: `./gradlew runClientGRPC --console=plain`
    * Enter the IP address when prompted.
 
+>**Unit Tests**
+>Note, unit tests will run when the project is built. The passing status of the tests
+>is indicated by `BUILD SUCCESSFUL` in green.
+
 ### Notes:
 * Exiting the client with `ctrl-c` *will not* log out the client. As a result,
     this will prevent you from logging in as that user in the future. Therefore,
     always exit using option `0`.
+* The lastest code for the project is in the `main` branch (not `grpc`). By default
+    the `git clone` command will pull from `main`, as desired. Similarly, the latest
+    design notebook is also present in `main`.
 
 ## Design Overview
 The **server** acts as the server for the Messenger service, but as the client for the

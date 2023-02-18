@@ -201,7 +201,6 @@ public class Client {
                             // There are five parts to each message
                             messageNum+=5;
                         }
-                        responses.printResponses();
                     } else if (method ==API.DELETE_ACCOUNT) {
                         System.out.println("Deleting the account associated to the username: " + username);
                         DeleteAccountRequest request = new DeleteAccountRequest(username);
