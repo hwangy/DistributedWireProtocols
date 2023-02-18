@@ -195,7 +195,7 @@ public class Client {
                         while (messageNum < messageParts.size()) {
                             Long timestamp = Long.valueOf(messageParts.get(messageNum - 1));
                             String sender = messageParts.get(messageNum + 1);
-                            String message = messageParts.get(messageNum = 3);
+                            String message = messageParts.get(messageNum + 3);
                             Logging.logService(new Message(timestamp, sender, "", message).toString());
 
                             // There are five parts to each message

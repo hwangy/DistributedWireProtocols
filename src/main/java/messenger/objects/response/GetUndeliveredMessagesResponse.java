@@ -22,19 +22,16 @@ public class GetUndeliveredMessagesResponse extends ListMessageResponse<Message>
     }
 
     /**
-     * Creates a generic response assocated with the response
-     * @return The generic response assocated with the response
+     * Creates a generic response associated with the response
+     * @return The generic response associated with the response
      */
     @Override
     public Response genGenericResponse() {
-        Optional<List<String>> combinedList = getMessages().stream().map(Message::asStringList).reduce(
-                (list1,list2)->{list1.addAll(list2); return list1;}
-        );
-        if (combinedList.isPresent()) {
-            return new Response(isSuccessful(), combinedList.get());
-        } else {
-            return new Response(false, new ArrayList<>());
+        List<String> combinedList = new ArrayList<>();
+        for (Message message : getMessages()) {
+            combinedList.addAll(message.asStringList());
         }
+        return new Response(isSuccessful(), combinedList);
     }
 
     /**
