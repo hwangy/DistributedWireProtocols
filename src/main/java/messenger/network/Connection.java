@@ -1,5 +1,7 @@
 package messenger.network;
 
+import messenger.util.Logging;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
