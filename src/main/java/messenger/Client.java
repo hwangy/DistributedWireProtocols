@@ -16,8 +16,12 @@ import java.util.*;
 
 public class Client {
 
+    // A handle to the Connection between the client and server
     private static Connection connection;
+    // A handle to the Connection between client and server used for sending
+    // and receiving messages.
     private static Connection messageConnection = null;
+    // The socket for the message connection
     private static Socket messageSocket;
 
     // The username associated with the client; if this is not

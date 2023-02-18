@@ -7,11 +7,18 @@ import messenger.objects.response.*;
 import java.util.*;
 
 public class ServerCore {
+
+    // Maintain a map of usernames to lists of sent messages
     private final Map<String, List<Message>> sentMessages;
+    // A map from recipients to messages which should be delivered immediately. This list
+    // is monitored by client/username-specific threads
     private final Map<String, List<Message>> queuedMessagesMap;
 
+    // A map of usernames to their undelivered messages
     private final Map<String, List<Message>> undeliveredMessages;
+    // All currently logged-in users
     private final Set<String> loggedInUsers;
+    // All created and not deleted accounts.
     private final Set<String> allAccounts;
 
     public ServerCore() {

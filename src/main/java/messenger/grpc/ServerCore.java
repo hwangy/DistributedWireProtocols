@@ -7,16 +7,22 @@ import messenger.util.Logging;
 import java.util.*;
 
 public class ServerCore {
+    // Maintain a map of usernames to lists of sent messages
     private final Map<String, List<Message>> sentMessages;
+    // A map from recipients to messages which should be delivered immediately. This list
+    // is monitored by client/username-specific threads
     private final Map<String, List<Message>> queuedMessagesMap;
 
+    // A map of usernames to their undelivered messages
     private final Map<String, List<Message>> undeliveredMessages;
+    // All currently logged-in users
     private final Map<String, Address> loggedInUsers;
     /**
      * Stores a map of connected IP addresses as well as ports. This allows
      * the server to assign a unique port if the IP address is repeated
      */
     private final Map<String, List<Integer>> ipToPorts;
+    // All created and not deleted accounts.
     private final Set<String> allAccounts;
 
     public ServerCore() {
