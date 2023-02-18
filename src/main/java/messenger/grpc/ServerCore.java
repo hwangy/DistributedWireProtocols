@@ -123,6 +123,10 @@ public class ServerCore {
         }
     }
 
+    /**
+     * Get all accounts
+     * @return Return all accounts
+     */
     public Set<String> getAccounts() {
         return allAccounts;
     }
@@ -145,6 +149,11 @@ public class ServerCore {
         messageList.add(message);
     }
 
+    /**
+     * Return the queued messages for a particular user, specified by the username
+     * @param username The username
+     * @return Optionally return the list of queued messages
+     */
     public Optional<List<Message>> getQueuedMessages(String username) {
         if (queuedMessagesMap.containsKey(username)) {
             return Optional.of(queuedMessagesMap.get(username));
@@ -153,6 +162,10 @@ public class ServerCore {
         }
     }
 
+    /**
+     * Unqueue the messages for a particular user, specified by the username
+     * @param username The username
+     */
     public void unqueueMessages(String username) {
         List<Message> messageList;
 
@@ -170,6 +183,11 @@ public class ServerCore {
         }
     }
 
+    /**
+     * Returns whether a user is logged in 
+     * @param username The username
+     * @return Indicator of if user is logged in
+     */
     public Boolean isLoggedIn(String username) {
         return loggedInUsers.containsKey(username);
     }

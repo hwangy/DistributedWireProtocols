@@ -27,6 +27,10 @@ public class LoginRequest extends SingleArgumentRequestWithUsername {
         super(request);
     }
 
+    /**
+     * Gets the identifier associated to Login
+     * @return The identifier
+     */
     @Override
     public int getIdentifier() {
         return API.LOGIN.getIdentifier();

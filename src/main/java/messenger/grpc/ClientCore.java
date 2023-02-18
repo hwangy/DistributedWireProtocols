@@ -11,6 +11,10 @@ public class ClientCore {
         this.username = null;
     }
 
+    /**
+     * Get the username associated to the ClientCore
+     * @return the username
+     */
     public String getUsername() {
         return this.username;
     }
@@ -25,7 +29,7 @@ public class ClientCore {
     }
 
     /**
-     * Sets the clients internal status to logged in by updating the username
+     * Sets the client's internal status to logged in by updating the username
      * as well as setting the connection ID (based on the login response).
      * @param username  The username to log in
      * @param response  The response from the server
@@ -43,6 +47,11 @@ public class ClientCore {
         return status.getSuccess();
     }
 
+    /**
+     * Sets the client's internal status to logged out by updating the username to null.
+     * @param response  The response from the server
+     * @return          Whether the logout request was successful or not.
+     */
     public Boolean setLoggedOutStatus(StatusReply response) {
         Boolean success = response.getStatus().getSuccess();
         if (success) {

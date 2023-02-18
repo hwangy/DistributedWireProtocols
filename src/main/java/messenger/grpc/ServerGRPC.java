@@ -42,6 +42,10 @@ public class ServerGRPC {
         });
     }
 
+    /**
+     * Stops the Message server.
+     * @throws InterruptedException Thrown if the termination is interrupted in any way.
+     */
     private void stop() throws InterruptedException {
         if (server != null) {
             server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
@@ -112,7 +116,6 @@ public class ServerGRPC {
             }
             responseObserver.onCompleted();
         }
-
 
         @Override
         public void sendMessage(SendMessageRequest req, StreamObserver<StatusReply> responseObserver) {

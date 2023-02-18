@@ -14,10 +14,18 @@ public class Address {
         this.port = port;
     }
 
+    /**
+     * Gets the IP address
+     * @return The IP address
+     */
     public String getIpAddress() {
         return ipAddress;
     }
 
+    /**
+     * Gets the port
+     * @return The port
+     */
     public int getPort() {
         return port;
     }

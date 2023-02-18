@@ -27,6 +27,10 @@ public class CreateAccountRequest extends SingleArgumentRequestWithUsername {
         super(request);
     }
 
+    /**
+     * Gets the identifier associated to Create Account 
+     * @return The identifier
+     */
     @Override
     public int getIdentifier() {
         return API.CREATE_ACCOUNT.getIdentifier();
