@@ -13,6 +13,7 @@ public class TestUtils {
     public static final String matchingPrefix = "user.*";
     public static final String testMessage = "test message";
     public static final String testIpAddress = "127.0.0.1";
+    public static final String testSecondIpAddress = "127.0.0.2";
     public static final int testPort = Constants.MESSAGE_PORT;
 
     /**
@@ -27,6 +28,18 @@ public class TestUtils {
     }
 
     /**
+     * Creates a simple CreateAccountRequest
+     * @param username  Username for the request
+     * @param ipAddress IP address for the request
+     * @return          a createAccountRequest
+     */
+    public static CreateAccountRequest testCreateUserRequest(String username, String ipAddress) {
+        return CreateAccountRequest.newBuilder()
+                .setIpAddress(ipAddress)
+                .setUsername(username).build();
+    }
+
+    /**
      * Create a simple DeleteUserRequest
      * @param username  Username for the request
      * @return          a deleteUserRequest
@@ -35,6 +48,16 @@ public class TestUtils {
         return DeleteAccountRequest.newBuilder()
                 .setUsername(username)
                 .build();
+    }
+
+    /**
+     * Create a simple LoginRequest.
+     * @param username  Username to log in.
+     * @param ipAddress IP address for the request
+     * @return          a LoginRequest
+     */
+    public static LoginRequest testLoginRequest(String username, String ipAddress) {
+        return LoginRequest.newBuilder().setIpAddress(ipAddress).setUsername(username).build();
     }
 
     /**

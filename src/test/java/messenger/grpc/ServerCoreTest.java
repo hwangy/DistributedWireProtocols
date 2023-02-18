@@ -163,4 +163,55 @@ public class ServerCoreTest {
         LoginReply response = server.loginUserAPI(TestUtils.testLoginRequest(TestUtils.testUser));
         Assertions.assertFalse(response.getStatus().getSuccess());
     }
+
+    @Test
+    /**
+     * Test whether two users creating accounts on the same IP address are assigned distinct ports.
+     */
+    void testCreateAccountSameIPAddress() {
+        // Add two users on the same IP address
+        server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser, TestUtils.testIpAddress));
+        server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testSecondUser, TestUtils.testIpAddress));
+        // For two users on the same IP adress, want the message sender to assign distinct ports
+        LoginReply response = server.loginUserAPI(TestUtils.testLoginRequest(TestUtils.testUser, TestUtils.testIpAddress));
+        LoginReply secondResponse = server.loginUserAPI(TestUtils.testLoginRequest(TestUtils.testSecondUser, TestUtils.testIpAddress));
+
+        //LoginReply response = blockingStub.createAccount(TestUtils.testCreateUserRequest(TestUtils.testUser, TestUtils.testIpAddress));
+        System.out.println("Port HERE: " + response.getReceiverPort());
+        System.out.println("Port HERE: " + secondResponse.getReceiverPort());
+        
+        Assertions.assertTrue(response.getReceiverPort() == 7777);
+        Assertions.assertTrue(secondResponse.getReceiverPort() == 7778);
+
+        // Delete the second user
+        server.deleteAccountAPI(TestUtils.testDeleteUserRequest(TestUtils.testSecondUser));
+        // Recreate the second user
+        server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testSecondUser, TestUtils.testIpAddress));
+        // Test that the second user gets port 7778 again
+        secondResponse = server.loginUserAPI(TestUtils.testLoginRequest(TestUtils.testSecondUser, TestUtils.testSecondIpAddress));
+        Assertions.assertTrue(secondResponse.getReceiverPort() == 7778);
+        // Delete the first user
+        server.deleteAccountAPI(TestUtils.testDeleteUserRequest(TestUtils.testUser));
+        // Recreate the first user
+        server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser, TestUtils.testIpAddress));
+        // Test that the first user gets port 7777 again
+        response = server.loginUserAPI(TestUtils.testLoginRequest(TestUtils.testUser, TestUtils.testIpAddress));
+        Assertions.assertTrue(response.getReceiverPort() == 7777);
+
+    }
+
+    @Test
+    /**
+     * Test whether two users creating accounts on different IP addresses are assigned the same port.
+     */
+    void testCreateAccountDifferentIPAddress() {
+        // Add two users on different IP address
+        server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser, TestUtils.testIpAddress));
+        server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testSecondUser, TestUtils.testSecondIpAddress));
+        // For two users on the same IP adress, want the message sender to assign the same port
+        LoginReply response = server.loginUserAPI(TestUtils.testLoginRequest(TestUtils.testUser, TestUtils.testIpAddress));
+        LoginReply secondResponse = server.loginUserAPI(TestUtils.testLoginRequest(TestUtils.testSecondUser, TestUtils.testSecondIpAddress));
+        Assertions.assertTrue(response.getReceiverPort() == 7777);
+        Assertions.assertTrue(secondResponse.getReceiverPort() == 7777);
+    }
 }
