@@ -374,6 +374,8 @@ When we implemented the code without gRPC, we set up request and response object
 
 For this reason, we believe that the size of the buffers will end up being similar between the two implementations. Besides comparing the size of the objects being converted and sent across the network, it is tough to compare the size of the buffers more explicitly as gRPC keeps the this information (about the size of the buffer being sent and the details of how sending across the network works) rather hidden. Therefore, we are considering the size of the objects being sent as a proxy for the size of the buffers being sent back and forth between the client and the server.
 
+- discuss potential overhead with gRPC implementation, when go into the details of how many bytes used by each
+
 ### The complexity of the code
 
 Using our reasoning about the size of the buffers above, we now speculate waht this means for the compleixty of the code. Since the size of the buffers is rather comparable, the code (without gRPC and with gRPC) will have a similar complexity ultimately.
@@ -382,4 +384,4 @@ However, it was a lot easier to set up the request and response/reply objects wi
 
 ### Performance differences
 
-- similar performance overall when run. Same messages sent back and forth, same behavior.
+The two implementations (Part 1 without gRPC vs Part 2 with gRPC) have a very similar performance overall when run. This encompasses the fact that the same messages are sent back and forth between the two implementations. The client and server have the same behavior, though the implementations vary when gRPC is used or not based on the specifications gRPC and our wire protocol each needed.
