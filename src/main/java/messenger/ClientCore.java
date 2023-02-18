@@ -14,6 +14,10 @@ public class ClientCore {
         this.username = null;
     }
 
+    /**
+     * Get the username
+     * @return The username
+     */
     public String getUsername() {
         return this.username;
     }
@@ -27,8 +31,12 @@ public class ClientCore {
         return this.username != null;
     }
 
-    /* If the login response tells us that the server has succeeded in logging in, 
+    /** 
+     * If the login response tells us that the server has succeeded in logging in, 
       update the username in ClientCore. Else return a failure message.
+    *  @param request The request object
+    *  @param response The response object
+    @* @return An indicator of if there was success
     */
     public Boolean loginAPI(LoginRequest request, StatusMessageResponse response) {
         Boolean success = response.isSuccessful();
@@ -40,6 +48,12 @@ public class ClientCore {
         return success;
     }
 
+    /**
+     * Update the information on the client's side that the user is logging out.
+     * Updates the username that the client stores to null
+     * @param response The response object
+     * @return And indicator of if there was success
+     */
     public Boolean logoutAPI(StatusMessageResponse response) {
         Boolean success = response.isSuccessful();
         if(success) {

@@ -166,13 +166,10 @@ public class Client {
                         Response responses = Response.genResponse(connection);
                         responses.printResponses();
                     } else if (method == API.SEND_MESSAGE) {
-                        // Do we need to handle case of empty message?
                         String recipient = "";
                         String message = "";
                         Logging.logService("Pick your recipient.");
                         recipient = inputReader.nextLine();
-                        // Maybe check with server if it's a real recipient first?
-
                         Logging.logService("Specify your message.");
                         message = inputReader.nextLine();
 

@@ -34,6 +34,7 @@ message StatusReply {
   Status status = 1;
 }
 
+// A request which is used for creating accounts
 message CreateAccountRequest {
   string ip_address = 1;
   string username = 2;
@@ -47,6 +48,7 @@ message LoginReply {
   Status status = 2;
 }
 
+// A request which is used for deleting accounts
 message DeleteAccountRequest {
   string username = 2;
 }

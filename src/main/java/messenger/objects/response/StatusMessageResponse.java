@@ -27,11 +27,19 @@ public class StatusMessageResponse implements MethodResponseInterface {
         return success;
     }
 
+    /**
+     * Get the status string
+     * @return The status string
+     */
     @Override
     public String getStringStatus() {
         return message;
     }
 
+    /**
+     * Creates a generic response assocated with the response
+     * @return The generic response assocated with the response
+     */
     @Override
     public Response genGenericResponse() {
         return new Response(success, Arrays.asList(message));

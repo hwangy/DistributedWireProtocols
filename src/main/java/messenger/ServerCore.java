@@ -22,6 +22,10 @@ public class ServerCore {
        this.allAccounts = new HashSet<>();
     }
 
+    /** 
+     * Gets all of the accounts
+     * @return Set of all of the accounts
+     */
     public Set<String> getAccounts() {
         return allAccounts;
     }
@@ -44,6 +48,11 @@ public class ServerCore {
         messageList.add(message);
     }
 
+    /**
+     * Get the queued messages for the user associated to the username
+     * @param username The username
+     * @return Optionally return a list of the queued messages
+     */
     public Optional<List<Message>> getQueuedMessages(String username) {
         if (queuedMessagesMap.containsKey(username)) {
             return Optional.of(queuedMessagesMap.get(username));
@@ -52,6 +61,10 @@ public class ServerCore {
         }
     }
 
+    /**
+     * Unqueue the messages for the user associated to the username
+     * @param The username
+     */
     public void unqueueMessages(String username) {
         List<Message> messageList;
 
@@ -69,10 +82,19 @@ public class ServerCore {
         }
     }
 
+    /**
+     * Get an indicator of if the user associated to the username is logged in
+     * @param username The username
+     * @return The indicator of if the user is logged in
+     */
     public Boolean isLoggedIn(String username) {
         return loggedInUsers.contains(username);
     }
 
+    /**
+     * Log out the user associated to the username
+     * @param username The username
+     */
     public void logoutUser(String username) {
         loggedInUsers.remove(username);
     }

@@ -45,10 +45,19 @@ public class SendMessageRequest implements MethodRequestInterface {
         }
     }
 
+    /**
+     * Gets the identifier associated to Send Message
+     * @return The identifier
+     */
     @Override
     public int getIdentifier() {
         return API.SEND_MESSAGE.getIdentifier();
     }
+
+    /**
+     * Creates a generic request assocated with the request
+     * @return The generic request assocated with the request
+     */
     @Override
     public Request genGenericRequest() {
         return new Request(getIdentifier(), Arrays.asList(sender, recipient, message));

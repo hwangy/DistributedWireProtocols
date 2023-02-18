@@ -37,6 +37,10 @@ public class ListMessageResponse<T extends Object> implements MethodResponseInte
         return success;
     }
     
+    /**
+     * Get the status string
+     * @return The status string
+     */
     @Override
     public String getStringStatus() {
         String response;
@@ -54,6 +58,10 @@ public class ListMessageResponse<T extends Object> implements MethodResponseInte
         return response;
     }
 
+    /**
+     * Creates a generic response assocated with the response
+     * @return The generic response assocated with the response
+     */
     @Override
     public Response genGenericResponse() {
         return new Response(success, message.stream().map(

@@ -102,6 +102,10 @@ public class Server {
             new Thread(messageHandler).start();
         }
 
+        /**
+         * The run method contains the logic of what APIs are called and what request and response objects are created
+         * corresponding to each of the method calls.
+         */
         public void run() {
             try {
                 while (true) {

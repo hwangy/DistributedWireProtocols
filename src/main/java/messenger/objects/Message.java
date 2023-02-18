@@ -53,18 +53,34 @@ public class Message extends Object {
                 sender, receiver, message);
     }
 
+    /**
+     * Get the recipient of the message
+     * @return The recipient
+     */
     public String getRecepient() {
         return receiver;
     }
 
+    /**
+     * Get the sender of the message
+     * @return The sender
+     */
     public String getSender() {
         return sender;
     }
 
+    /**
+     * Get the sent timestamp of the message
+     * @return The sent timestamp
+     */
     public Long getSentTimestamp() {
         return timestamp;
     }
 
+    /**
+     * Get the message contents
+     * @return The message contents
+     */
     public String getMessage() {
         return message;
     }
@@ -100,6 +116,10 @@ public class Message extends Object {
         setDeliveredTimestamp(System.currentTimeMillis());
     }
 
+    /**
+     * Converts the message into a corresponding String
+     * @return A String corresponding to the message
+     */
     @Override
     public String toString() {
         return String.format("From %s [%d]: \"%s\"", sender, timestamp, message);

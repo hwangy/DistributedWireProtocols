@@ -36,6 +36,10 @@ public abstract class SingleArgumentRequestWithUsername implements MethodRequest
         }
     }
 
+    /**
+     * Creates a generic request assocated with the request
+     * @return The generic request assocated with the request
+     */
     @Override
     public Request genGenericRequest() {
         return new Request(getIdentifier(), Arrays.asList(username));

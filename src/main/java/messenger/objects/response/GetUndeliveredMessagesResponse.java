@@ -21,6 +21,10 @@ public class GetUndeliveredMessagesResponse extends ListMessageResponse<Message>
         super(success, messages);
     }
 
+    /**
+     * Creates a generic response assocated with the response
+     * @return The generic response assocated with the response
+     */
     @Override
     public Response genGenericResponse() {
         Optional<List<String>> combinedList = getMessages().stream().map(Message::asStringList).reduce(
@@ -33,6 +37,10 @@ public class GetUndeliveredMessagesResponse extends ListMessageResponse<Message>
         }
     }
 
+    /**
+     * Get the status string
+     * @return The status string
+     */
     @Override
     public String getStringStatus() {
         if (isSuccessful()) {
