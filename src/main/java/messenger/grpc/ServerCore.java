@@ -38,13 +38,21 @@ public class ServerCore {
      */
     private int nextPortInList(List<Integer> assignedPorts) {
         int port = Constants.MESSAGE_PORT;
-        for (Integer currentPort : assignedPorts) {
-            if (currentPort == port) {
+        ListIterator<Integer> it = assignedPorts.listIterator();
+        while (it.hasNext()) {
+            Integer currPort = it.next();
+            if (currPort <= port) {
+                // If the next port in the list is smaller than
+                // the current port we're attempting to add, then
+                // we should move further down the list.
                 port++;
             } else {
+                // Otherwise, insert before the current element.
+                it.previous();
                 break;
             }
         }
+        it.add(port);
         return port;
     }
 
@@ -61,9 +69,7 @@ public class ServerCore {
             ports = new ArrayList<>();
             ipToPorts.put(ipAddress, ports);
         }
-        int nextPort = nextPortInList(ports);
-        ports.add(nextPort);
-        return nextPort;
+        return nextPortInList(ports);
     }
 
     /**
