@@ -143,7 +143,7 @@ In the `while(true)` loop of the Client, we choose to include the following.
 2. Get arguments for method
 3. Create an IF statement for each method (from 1 to 5). Inside each IF statement:
 
-	1. ethod]Request req = gen[Method]Request(String arguments...)`
+	1. [Method]Req]uest req = gen[Method]Request(String arguments...)`
 	2. `String rawRequest = encodeRequest(req.getGenericRequest());`
 	3. `sendToServer(rawRequest());`
 	4. `String response = getFromServer();`
