@@ -56,3 +56,14 @@ port `Constants.API_PORT`. After a `CREATE ACCOUNT` or `LOGIN` request is sent a
 response received, the client takes the port assigned by the server and launches a
 MessageReceiver service on which to receive incoming messages.
    
+## An Example Scenario to Test
+
+Below we describe an example scenario you may want to try out to test our system.
+
+1. Log in a user Alice.
+2. On a different window or device, log in a user Bob.
+3. Send the message "Hello" from Alice to Bob. (This should output "Hello" on Bob's side.)
+4. Log out Bob.
+5. Send a message "How are you" from Alice to Bob.
+6. Log in Bob.
+7. Deliver undelivered messages to Bob. (This should output "How are you" on Bob's side.)
