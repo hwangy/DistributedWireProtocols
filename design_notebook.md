@@ -362,18 +362,24 @@ the gRPC website which was confusing.
 In the end, I was able to fix it by using a slightly different constructor for the server, which uses a
 `ServerBuilder` not the `Grpc.newServerBuilderForPort`.
 
-## February 18th
+## February 18th: Reflections on using gRPC
 
 We are now wrapping up our implementation of the design exercise with gRPC, and are ready to compare the complexity of the code (our first implementation vs gRPC implementation), any performance differences, and the size of the buffers being sent back and forth between the client and the server. 
 
+### The size of the buffers being sent back and forth between the client and the server
+
+The size of the buffers being sent back and forth between the client and the server was rather similar between the two implementations (previous implementation vs gRPC). This was because the way we originally implemented the code shared several similarities with the way that gRPC automatically sets up request and reply objects.
+
+When we implemented the code without gRPC, we set up request and response objects for each of the 5 methods we had to implement, plus login and logout request and response objects. When gRPC was used, gRPC automatically generated request and reply objects, which we equipped with the same type of functionality as in our original implementation. The number of request and reply objects, their methods, and their stored information were all very comparable. 
+
+For this reason, we believe that the size of the buffers will end up being similar between the two implementations. Besides comparing the size of the objects being converted and sent across the network, it is tough to compare the size of the buffers more explicitly as gRPC keeps the this information (about the size of the buffer being sent and the details of how sending across the network works) rather hidden. Therefore, we are considering the size of the objects being sent as a proxy for the size of the buffers being sent back and forth between the client and the server.
+
 ### The complexity of the code
 
-here
+Using our reasoning about the size of the buffers above, we now speculate waht this means for the compleixty of the code. Since the size of the buffers is rather comparable, the code (without gRPC and with gRPC) will have a similar complexity ultimately.
+
+However, it was a lot easier to set up the request and response/reply objects with gRPC than without it. In Part 1 (the implementation without gRPC) we had to manually define request and response objects for each of the 5 methods and for logging in and logging out. This was a rather repetitive task that took time. However, with gRPC, it took less time to set up these objects and gRPC created them for us and created appropriate methods, once we specified the structure of these objects we wanted in ``messageService.proto`` for gRPC.
 
 ### Performance differences
 
-here
-
-### The size of the buffers being sent back and forth between the client and the server
-
-here
+- similar performance overall when run. Same messages sent back and forth, same behavior.
