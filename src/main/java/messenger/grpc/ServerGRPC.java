@@ -162,8 +162,8 @@ public class ServerGRPC {
             this.server = server;
             this.username = username;
 
-            ManagedChannel channel = ManagedChannelBuilder.forAddress(address.getIpAddress(), address.getPort())
-                    .usePlaintext().build();
+            ManagedChannel channel = Grpc.newChannelBuilder(address.toString(), InsecureChannelCredentials.create())
+                    .build();
             blockingStub = MessageReceiverGrpc.newBlockingStub(channel);
         }
 

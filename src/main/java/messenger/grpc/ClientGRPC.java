@@ -29,8 +29,10 @@ public class ClientGRPC {
      * @throws IOException  Thrown on network exception.
      */
     private static Server startMessageReceiver(int port) throws IOException {
-        Server server = ServerBuilder.forPort(port)
-                .addService(new MessageReceiverImpl()).build().start();
+        Server server = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
+                .addService(new MessageReceiverImpl())
+                .build()
+                .start();
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -288,7 +290,6 @@ public class ClientGRPC {
                         if (port > 0) {
                             server = startMessageReceiver(port);
                         }
-
                     }
                 } else {
                     // Username is already set and the user is logged in.
