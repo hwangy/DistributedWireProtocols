@@ -23,8 +23,10 @@ public class ServerGRPC {
      */
     private void start() throws IOException {
         ServerCore core = new ServerCore();
-        server = ServerBuilder.forPort(Constants.API_PORT)
-                .addService(new MessageServerImpl(core)).build().start();
+        server = Grpc.newServerBuilderForPort(Constants.API_PORT, InsecureServerCredentials.create())
+                .addService(new MessageServerImpl(core))
+                .build()
+                .start();
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {

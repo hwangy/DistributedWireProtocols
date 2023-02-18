@@ -237,9 +237,8 @@ public class ClientGRPC {
         //
         // For the example we use plaintext insecure credentials to avoid needing TLS certificates. To
         // use TLS, use TlsChannelCredentials instead.
-        ManagedChannel channel = ManagedChannelBuilder.forAddress(address, Constants.API_PORT)
-                .usePlaintext().build();
-
+        ManagedChannel channel = Grpc.newChannelBuilder(target, InsecureChannelCredentials.create())
+                .build();
 
         String options = "Pick an option:\n" +
                 "0. Exit (and log-out).\n" +
