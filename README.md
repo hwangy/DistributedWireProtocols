@@ -43,7 +43,7 @@ The server keeps track of the following state,
     MessageReceiver service)
 4. Undelivered and delivered messages.
 
-## The Client
+### The Client
 On stratup, `ClientGRPC` asks the user for the Server IP address, then connects on
 port `Constants.API_PORT`. After a `CREATE ACCOUNT` or `LOGIN` request is sent and a
 response received, the client takes the port assigned by the server and launches a
