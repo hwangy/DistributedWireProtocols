@@ -6,6 +6,9 @@ option java_outer_classname = "MessengerProto";
 
 package grpc;
 
+// The Messenger service which contains all of the methods of
+// creating an account, deleting an account, getting accounts with a text wildcard,
+// getting undelivered messages for a user, sending messages, logging in, and logging out.
 service Messenger {
   rpc CreateAccount (CreateAccountRequest) returns (LoginReply) {}
   rpc DeleteAccount (DeleteAccountRequest) returns (StatusReply) {}
@@ -34,7 +37,7 @@ message StatusReply {
   Status status = 1;
 }
 
-// A request which is used for creating accounts
+// A request which is used for creating an account
 message CreateAccountRequest {
   string ip_address = 1;
   string username = 2;
@@ -48,30 +51,36 @@ message LoginReply {
   Status status = 2;
 }
 
-// A request which is used for deleting accounts
+// A request which is used for deleting an account
 message DeleteAccountRequest {
   string username = 2;
 }
 
+// A request which is used for getting accounts assocated to a text wildcard
 message GetAccountsRequest {
   string text_wildcard = 2;
 }
 
+// A reply which is associated to getting accounts
 message GetAccountsReply {
   Status status = 1;
   repeated string accounts = 2;
 }
 
+// A request which is used for getting the undelivered messages for a particular user
 message GetUndeliveredMessagesRequest {
   int32 connection_id = 1;
   string username = 2;
 }
 
+// A reply which is associated to getting the undelivered messages
 message GetUndeliveredMessagesReply {
   Status status = 1;
   repeated Message messages = 2;
 }
 
+// The Message contains information about the sender, recipeint, and message contents
+// for a message being sent, as well as the sent timestamp and delivered timestamp.
 message Message {
   int64 sent_timestamp = 1;
   string sender = 2;
@@ -80,15 +89,18 @@ message Message {
   optional int64 delivered_timestamp = 5;
 }
 
+// A request which is used for sending a message
 message SendMessageRequest {
   Message message = 2;
 }
 
+// A request which is used for logging in a user
 message LoginRequest {
   string ip_address = 1;
   string username = 2;
 }
 
+// A request which is used for logging out a user
 message LogoutRequest {
   string username = 2;
 }
