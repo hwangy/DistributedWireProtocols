@@ -57,9 +57,7 @@ public class ClientGRPC {
         // Try to fetch the local IP address to provide to server
         String ipAddress = null;
         try {
-            Logging.logInfo("Got here.");
             ipAddress = NetworkUtil.getLocalIPAddress();
-            Logging.logInfo("Got IP Address: " + ipAddress);
         } catch (UnknownHostException ex) {
             Logging.logInfo("Failed to get local IP address, message handler will NOT be started.");
         }
@@ -180,7 +178,6 @@ public class ClientGRPC {
         String ipAddress = null;
         try {
             ipAddress = NetworkUtil.getLocalIPAddress();
-            Logging.logInfo("Got IP Address: " + ipAddress);
         } catch (UnknownHostException ex) {
             Logging.logInfo("Failed to get local IP address, message handler will NOT be started.");
         }
@@ -248,7 +245,7 @@ public class ClientGRPC {
                 "2. List accounts (or a subset of the accounts, by text wildcard)\n" +
                 "3. Send a message to a recipient.\n" +
                 "4. Deliver undelivered messages to a particular user.\n" +
-                "5. Delete an account.\n" +
+                "5. Delete an account (and delete all undelivered messages).\n" +
                 "6. Log in to an existing account.";
         int choice = -1;
 

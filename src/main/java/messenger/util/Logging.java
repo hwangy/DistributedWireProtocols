@@ -31,6 +31,6 @@ public class Logging {
      * @param toLog     Message to log.
      */
     public static void logService(String toLog) {
-        System.out.printf("[SERVICE]\t%s\n", toLog);
+        System.out.printf("[SERVICE] %s\n", toLog);
     }
 }
