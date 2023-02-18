@@ -179,7 +179,8 @@ public class ServerCoreTest {
         //LoginReply response = blockingStub.createAccount(TestUtils.testCreateUserRequest(TestUtils.testUser, TestUtils.testIpAddress));
         System.out.println("Port HERE: " + response.getReceiverPort());
         System.out.println("Port HERE: " + secondResponse.getReceiverPort());
-        
+
+        // Woo's Note: You should Constants.MESSAGE_PORT rather than a hard coded value
         Assertions.assertTrue(response.getReceiverPort() == 7777);
         Assertions.assertTrue(secondResponse.getReceiverPort() == 7778);
 
@@ -214,4 +215,11 @@ public class ServerCoreTest {
         Assertions.assertTrue(response.getReceiverPort() == 7777);
         Assertions.assertTrue(secondResponse.getReceiverPort() == 7777);
     }
+
+    //TODO: We should also test to make sure when
+    // 1. User 1 creates account
+    // 2. User 2 creates account on same ip
+    // 3. User 1 logs out
+    // 4. User 3 creates account on same ip
+    // Here, user 3 should get the same port number as user 1 initially did
 }
