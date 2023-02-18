@@ -231,13 +231,13 @@ public class ServerCoreTest {
         LoginReply thirdResponse = server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testThirdUser, TestUtils.testIpAddress));
 
         // User 3 should get the same port number as user 1 initially did
-        Assertions.assertTrue(response.getReceiverPort() == Constants.MESSAGE_PORT);
+        Assertions.assertTrue(thirdResponse.getReceiverPort() == Constants.MESSAGE_PORT);
 
         // User 4 creates account on same IP
         LoginReply fourthResponse = server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testFourthUser, TestUtils.testIpAddress));
 
         // User 4 should get port Constants.MESSAGE_PORT + 2
-        Assertions.assertTrue(response.getReceiverPort() == Constants.MESSAGE_PORT + 2);
+        Assertions.assertTrue(fourthResponse.getReceiverPort() == Constants.MESSAGE_PORT + 2);
 
     }
 }
