@@ -9,6 +9,8 @@ import messenger.util.Constants;
 public class TestUtils {
     public static final String testUser = "testUser";
     public static final String testSecondUser = "testUser2";
+    public static final String testThirdUser = "testUser3";
+    public static final String testFourthUser = "testUser4";
     public static final String uniquePrefixUser = "userTest";
     public static final String matchingPrefix = "user.*";
     public static final String testMessage = "test message";
@@ -127,5 +129,14 @@ public class TestUtils {
      */
     public static LogoutRequest testLogoutTestUser() {
         return LogoutRequest.newBuilder().setUsername(testUser).build();
+    }
+
+    /**
+     * A test request for logging out the user with username
+     * @param username The username
+     * @return  A LogoutRequest
+     */
+    public static LogoutRequest testLogoutTestUser(String username) {
+        return LogoutRequest.newBuilder().setUsername(username).build();
     }
 }
