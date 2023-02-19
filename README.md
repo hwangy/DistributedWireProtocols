@@ -6,6 +6,8 @@ Project 1 for Distributed Systems
 1. Run `git clone https://github.com/hwangy/DistributedWireProtocols.git`
 2. `cd` into the directory `DistributedWireProtocols`
 3. Run `./gradlew build`
+   * If you are on a Windows system, use `gradlew.bat build` instead, and similarly
+     for the below commands.
 4. On the server `./gradlew runServerGRPC --console=plain`
 5. On the client:
    * Check the IP address of the server
@@ -20,7 +22,7 @@ Project 1 for Distributed Systems
 * Exiting the client with `ctrl-c` *will not* log out the client. As a result,
     this will prevent you from logging in as that user in the future. Therefore,
     always exit using option `0`.
-* The lastest code for the project is in the `main` branch (not `grpc`). By default
+* The latest code for the project is in the `main` branch (not `grpc`). By default
     the `git clone` command will pull from `main`, as desired. Similarly, the latest
     design notebook is also present in `main`.
 
@@ -51,7 +53,7 @@ The server keeps track of the following state,
 4. Undelivered and delivered messages.
 
 ### The Client
-On stratup, `ClientGRPC` asks the user for the Server IP address, then connects on
+On startup, `ClientGRPC` asks the user for the Server IP address, then connects on
 port `Constants.API_PORT`. After a `CREATE ACCOUNT` or `LOGIN` request is sent and a
 response received, the client takes the port assigned by the server and launches a
 MessageReceiver service on which to receive incoming messages.
