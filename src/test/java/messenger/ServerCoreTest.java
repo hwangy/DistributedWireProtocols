@@ -108,6 +108,8 @@ public class ServerCoreTest {
      */
     @Test
     void testSendMessageNotLoggedIn() {
+        server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser));
+        server.logoutUserAPI(TestUtils.testLogoutTestUser());
         Assertions.assertTrue(server.sendMessageAPI(TestUtils.testSendToTestUser()).isSuccessful());
 
         GetUndeliveredMessagesResponse response = server.getUndeliveredMessagesAPI(

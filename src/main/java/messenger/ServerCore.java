@@ -1,5 +1,6 @@
 package messenger;
 
+import messenger.grpc.Status;
 import messenger.objects.Message;
 import messenger.objects.request.*;
 import messenger.objects.response.*;
@@ -203,7 +204,9 @@ public class ServerCore {
 
         // Create Message object.
         Message message = new Message(System.currentTimeMillis(), sender, recipient, strMessage);
-        if (loggedInUsers.contains(recipient)) {
+        if (!allAccounts.contains(recipient)) {
+            return new SendMessageResponse(false, "Recipient does not exist.");
+        } else if (loggedInUsers.contains(recipient)) {
             // If the user is logged in, immediately send the message.
             addMessageToList(queuedMessagesMap, message);
             return new SendMessageResponse(true, "Message sent successfully.");

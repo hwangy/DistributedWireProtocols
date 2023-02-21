@@ -2,6 +2,12 @@ package messenger;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+/**
+ * Tests client-specific behavior. The primary responsibility of the
+ * client is to maintain a user's logged in state correctly. Thus,
+ * this is the focus of these tests.
+ */
 class ClientTest {
 
     /**

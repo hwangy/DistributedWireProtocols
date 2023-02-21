@@ -16,11 +16,11 @@ public class ServerIntegrationTest {
     public final GrpcCleanupRule grpcCleanup = new GrpcCleanupRule();
 
     /**
-     * To test the server, make calls with a real stub using the in-process channel, and verify
-     * behaviors or state changes from the client side.
+     * Basic integration test which ensures a request from the client is
+     * successfully processed by the server.
      */
     @Test
-    public void greeterImpl_replyMessage() throws Exception {
+    public void testEndToEndBehavior() throws Exception {
         // Generate a unique in-process server name.
         String serverName = InProcessServerBuilder.generateName();
 
@@ -37,6 +37,6 @@ public class ServerIntegrationTest {
 
         LoginReply reply =
                 blockingStub.createAccount(CreateAccountRequest.newBuilder().setUsername("test name").build());
-        Assert.assertTrue(true);
+        Assert.assertTrue(reply.getStatus().getSuccess());
     }
 }
