@@ -1,15 +1,13 @@
-package messenger;
+package messenger.grpc;
 
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.testing.GrpcCleanupRule;
-import messenger.grpc.*;
-import messenger.grpc.ServerCore;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 
-public class ServerGRPCIntegrationTest {
+public class ServerIntegrationTest {
     /**
      * This rule manages automatic graceful shutdown for the registered servers and channels at the
      * end of test.

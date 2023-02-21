@@ -1,7 +1,11 @@
 package messenger;
 
-import messenger.grpc.*;
-import messenger.util.Constants;
+import messenger.api.API;
+import messenger.api.APIException;
+import messenger.objects.request.*;
+import messenger.objects.response.StatusMessageResponse;
+
+import java.util.Arrays;
 
 /**
  * Basic test utilities
@@ -9,36 +13,24 @@ import messenger.util.Constants;
 public class TestUtils {
     public static final String testUser = "testUser";
     public static final String testSecondUser = "testUser2";
-    public static final String testThirdUser = "testUser3";
-    public static final String testFourthUser = "testUser4";
     public static final String uniquePrefixUser = "userTest";
     public static final String matchingPrefix = "user.*";
     public static final String testMessage = "test message";
-    public static final String testIpAddress = "127.0.0.1";
-    public static final String testSecondIpAddress = "127.0.0.2";
-    public static final int testPort = Constants.MESSAGE_PORT;
 
     /**
-     * Creates a simple CreateAccountRequest
+     * Creates a simple CreateUserRequest
      * @param username  Username for the request
-     * @return          a createAccountRequest
+     * @return          a createUserRequest
      */
     public static CreateAccountRequest testCreateUserRequest(String username) {
-        return CreateAccountRequest.newBuilder()
-                .setIpAddress(testIpAddress)
-                .setUsername(username).build();
-    }
-
-    /**
-     * Creates a simple CreateAccountRequest
-     * @param username  Username for the request
-     * @param ipAddress IP address for the request
-     * @return          a createAccountRequest
-     */
-    public static CreateAccountRequest testCreateUserRequest(String username, String ipAddress) {
-        return CreateAccountRequest.newBuilder()
-                .setIpAddress(ipAddress)
-                .setUsername(username).build();
+        try {
+            Request request = new Request(API.CREATE_ACCOUNT.getIdentifier(),
+                    Arrays.asList(username));
+            return new CreateAccountRequest(request);
+        } catch (APIException ex) {
+            // This should never happen
+            return null;
+        }
     }
 
     /**
@@ -47,19 +39,14 @@ public class TestUtils {
      * @return          a deleteUserRequest
      */
     public static DeleteAccountRequest testDeleteUserRequest(String username) {
-        return DeleteAccountRequest.newBuilder()
-                .setUsername(username)
-                .build();
-    }
-
-    /**
-     * Create a simple LoginRequest.
-     * @param username  Username to log in.
-     * @param ipAddress IP address for the request
-     * @return          a LoginRequest
-     */
-    public static LoginRequest testLoginRequest(String username, String ipAddress) {
-        return LoginRequest.newBuilder().setIpAddress(ipAddress).setUsername(username).build();
+        try {
+            Request request = new Request(API.DELETE_ACCOUNT.getIdentifier(),
+                    Arrays.asList(username));
+            return new DeleteAccountRequest(request);
+        } catch (APIException ex) {
+            // This should never happen
+            return null;
+        }
     }
 
     /**
@@ -68,11 +55,13 @@ public class TestUtils {
      * @return          a LoginRequest
      */
     public static LoginRequest testLoginRequest(String username) {
-        return LoginRequest.newBuilder().setIpAddress(testIpAddress).setUsername(username).build();
-    }
-
-    private static Status testSuccessfulStatus() {
-        return Status.newBuilder().setSuccess(true).build();
+        try {
+            Request request = new Request(API.LOGIN.getIdentifier(), Arrays.asList(username));
+            return new LoginRequest(request);
+        } catch (APIException ex) {
+            // This should never happen
+            return null;
+        }
     }
 
     /**
@@ -80,17 +69,12 @@ public class TestUtils {
      * of an API call.
      * @return  A StatusMessageResponse object
      */
-    public static StatusReply testSuccessfulStatusMessageResponse() {
-        return StatusReply.newBuilder().setStatus(testSuccessfulStatus()).build();
-    }
-
-    public static LoginReply testSuccessfulLoginReply() {
-        return LoginReply.newBuilder().setReceiverPort(testPort).setStatus(testSuccessfulStatus())
-                .build();
+    public static StatusMessageResponse testSuccessfulStatusMessageResponse() {
+        return new StatusMessageResponse(true, "success");
     }
 
     public static GetAccountsRequest testGetAllAccountsRequest() {
-        return GetAccountsRequest.newBuilder().setTextWildcard("").build();
+        return new GetAccountsRequest();
     }
 
     /**
@@ -99,7 +83,7 @@ public class TestUtils {
      * @return  A GetAccountsRequest with wildcard "user.*"
      */
     public static GetAccountsRequest testGetAccountsMatchUniquePrefix() {
-        return GetAccountsRequest.newBuilder().setTextWildcard(matchingPrefix).build();
+        return new GetAccountsRequest(matchingPrefix);
     }
 
     /**
@@ -107,10 +91,7 @@ public class TestUtils {
      * @return  A SendMessageRequest.
      */
     public static SendMessageRequest testSendToTestUser() {
-        return SendMessageRequest.newBuilder().setMessage(Message.newBuilder()
-                .setSender("")
-                .setRecipient(testUser)
-                .setMessage(testMessage).build()).build();
+        return new SendMessageRequest("",testUser,testMessage);
     }
 
     /**
@@ -118,9 +99,7 @@ public class TestUtils {
      * @return  A GetUndeliveredMessagesRequest
      */
     public static GetUndeliveredMessagesRequest testGetUndeliveredMessagesToTestUser() {
-        return GetUndeliveredMessagesRequest.newBuilder()
-                .setUsername(testUser)
-                .build();
+        return new GetUndeliveredMessagesRequest(testUser);
     }
 
     /**
@@ -128,15 +107,6 @@ public class TestUtils {
      * @return  A LogoutRequest
      */
     public static LogoutRequest testLogoutTestUser() {
-        return LogoutRequest.newBuilder().setUsername(testUser).build();
-    }
-
-    /**
-     * A test request for logging out the user with username
-     * @param username The username
-     * @return  A LogoutRequest
-     */
-    public static LogoutRequest testLogoutTestUser(String username) {
-        return LogoutRequest.newBuilder().setUsername(username).build();
+        return new LogoutRequest(testUser);
     }
 }

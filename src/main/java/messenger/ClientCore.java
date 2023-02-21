@@ -1,11 +1,8 @@
 package messenger;
 
-import messenger.objects.Message;
 import messenger.objects.request.*;
 import messenger.objects.response.*;
 import messenger.util.Logging;
-
-import java.util.*;
 
 public class ClientCore {
     private String username;

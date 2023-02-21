@@ -1,6 +1,5 @@
 package messenger.grpc;
 
-import messenger.TestUtils;
 import messenger.util.Constants;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
