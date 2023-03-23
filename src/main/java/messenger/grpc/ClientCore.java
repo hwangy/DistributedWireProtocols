@@ -7,8 +7,15 @@ public class ClientCore {
     // The username associated with the current session
     private String username;
 
+    // Connection status of the client
+    private Boolean connectionEstablished;
+
+    // A boolean flag to signal the client should exit
+    private Boolean exit = false;
+
     public ClientCore() {
         this.username = null;
+        connectionEstablished = false;
     }
 
     /**
@@ -62,6 +69,35 @@ public class ClientCore {
         return success;
     }
 
+    /**
+     * Set the internal status of the client to connected.
+     */
+    public void setConnected() {
+        this.connectionEstablished = true;
+    }
 
+    /**
+     * Set the internal status of the client to disconnected.
+     */
+    public void setDisconnected()  {
+        this.connectionEstablished = false;
+    }
+
+    /**
+     * Gets the connection status of the client.
+     *
+     * @return  True if connected, false otherwise
+     */
+    public Boolean getConnectionStatus() {
+        return this.connectionEstablished;
+    }
+
+    public void setExit() {
+        exit = true;
+    }
+
+    public Boolean getExit() {
+        return exit;
+    }
 
 }

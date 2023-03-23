@@ -9,11 +9,11 @@ import java.util.Map;
 public enum API {
     LOGOUT(0),
     CREATE_ACCOUNT(1),
-    GET_ACCOUNTS(2),
-    SEND_MESSAGE(3),
-    GET_UNDELIVERED_MESSAGES(4),
-    DELETE_ACCOUNT(5),
-    LOGIN(6);
+    LOGIN(2),
+    GET_ACCOUNTS(3),
+    SEND_MESSAGE(4),
+    GET_UNDELIVERED_MESSAGES(5),
+    DELETE_ACCOUNT(6);
 
     private final int identifier;
     private static final Map<Integer, API> intToAPI = new HashMap<Integer, API>();

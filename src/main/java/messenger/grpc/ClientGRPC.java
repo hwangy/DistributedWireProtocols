@@ -3,7 +3,11 @@ package messenger.grpc;
 import io.grpc.*;
 import io.grpc.stub.StreamObserver;
 import messenger.api.API;
+import messenger.api.APIException;
+import messenger.api.DisconnectException;
 import messenger.network.NetworkUtil;
+import messenger.network.PulseCheck;
+import messenger.util.BreakableInputReader;
 import messenger.util.Constants;
 import messenger.util.GRPCUtil;
 import messenger.util.Logging;
@@ -219,8 +223,20 @@ public class ClientGRPC {
         core.setLoggedOutStatus(response);
     }
 
+    private API apiFromInt(int choice) throws APIException {
+        API method;
+        try {
+            method = API.fromInt(choice);
+            return method;
+        } catch (NumberFormatException e) {
+            // Invalid choice selected.
+            Logging.logService("Option must be an integer (between 0 and 6).");
+            return null;
+        }
+    }
+
     public static void main(String[] args) throws Exception {
-        Scanner inputReader = new Scanner(System.in);
+        BreakableInputReader inputReader = new BreakableInputReader();
 
         // Get server IP address from user.
         System.out.println("Enter the IP address of the server (leave blank for `localhost`).");
@@ -239,56 +255,63 @@ public class ClientGRPC {
         ManagedChannel channel = Grpc.newChannelBuilder(target, InsecureChannelCredentials.create())
                 .build();
 
-        String options = "Pick an option:\n" +
-                "0. Exit (and log-out).\n" +
-                "1. Create an account (and log-in). You must supply a unique user name (case-sensitive).\n" +
-                "2. List accounts (or a subset of the accounts, by text wildcard)\n" +
-                "3. Send a message to a recipient.\n" +
-                "4. Deliver undelivered messages to a particular user.\n" +
-                "5. Delete an account (and delete all undelivered messages).\n" +
-                "6. Log in to an existing account.";
-        int choice = -1;
+        String loginOptions = """
+                Pick an option:
+                0. Exit (and log-out).
+                1. Create an account (and log-in). You must supply a unique user name (case-sensitive).
+                2. Log in to an existing account.""";
+        String options = """
+                Pick an option:
+                0. Exit (and log-out).
+                3. List accounts (or a subset of the accounts, by text wildcard)
+                4. Send a message to a recipient.
+                5. Deliver undelivered messages to a particular user.
+                6. Delete an account (and delete all undelivered messages).
+                """;
 
+        Server server = null;
+        ClientGRPC client = new ClientGRPC(channel);
         try {
-            ClientGRPC client = new ClientGRPC(channel);
-            Server server = null;
+            // First require the user to enter their username.
+            String username;
             while (true) {
-                System.out.println(options);
+                System.out.println(loginOptions);
+                API method = client.apiFromInt(Integer.parseInt(inputReader.nextLine()));
 
-                // Get desired API call from user
-                API method;
-                try {
-                    choice = Integer.parseInt(inputReader.nextLine());
-                    method = API.fromInt(choice);
-                    Logging.logService("You have chosen option: " + method.toString());
-                } catch (NumberFormatException e) {
-                    // Invalid choice selected.
-                    Logging.logService("Option must be an integer (between 0 and 6).");
-                    continue;
-                }
-
-                String username = client.core.getUsername();
-                if (username == null) {
-                    // The user should only be allowed to select a method
-                    // `CREATE_ACCOUNT` or `LOGIN` if the username is not set.
-                    if (method != API.CREATE_ACCOUNT && method != API.LOGIN) {
-                        Logging.logService("Please first create a username or log in, by selecting option "
-                                + API.CREATE_ACCOUNT.getIdentifier() + " or " + API.LOGIN.getIdentifier());
-                    } else {
-                        int port;
-                        if (method == API.CREATE_ACCOUNT) {
-                            Logging.logService("Pick your username.");
-                            port = client.createAccount(inputReader.nextLine());
-                        } else {
-                            Logging.logService("Select the username.");
-                            port = client.login(inputReader.nextLine());
-                        }
-                        // Start the service to receive messages
-                        if (port > 0) {
-                            server = startMessageReceiver(port);
-                        }
-                    }
+                // The user should only be allowed to select a method
+                // `CREATE_ACCOUNT` or `LOGIN` if the username is not set.
+                if (method != API.CREATE_ACCOUNT && method != API.LOGIN) {
+                    Logging.logService("Please first create a username or log in, by selecting option "
+                            + API.CREATE_ACCOUNT.getIdentifier() + " or " + API.LOGIN.getIdentifier());
                 } else {
+                    int port;
+                    if (method == API.CREATE_ACCOUNT) {
+                        Logging.logService("Pick your username.");
+                        port = client.createAccount(inputReader.nextLine());
+                    } else {
+                        Logging.logService("Select the username.");
+                        port = client.login(inputReader.nextLine());
+                    }
+                    // Start the service to receive messages
+                    if (port > 0) {
+                        server = startMessageReceiver(port);
+                    }
+                    break;
+                }
+            }
+            // Start the pulse check service and create breakable input reader
+            new Thread(new PulseCheck(client.core, channel)).start();
+            inputReader.setClientCore(client.core);
+
+            while (true) {
+                try {
+                    System.out.println(options);
+
+                    // Get desired API call from user
+                    API method = client.apiFromInt(Integer.parseInt(inputReader.nextLine()));
+                    if (method == null) continue;
+
+                    username = client.core.getUsername();
                     // Username is already set and the user is logged in.
                     if (method == API.CREATE_ACCOUNT || method == API.LOGIN) {
                         Logging.logService("You are already logged in as " + username + ". " +
@@ -299,25 +322,19 @@ public class ClientGRPC {
                                 localUsername);
 
                         client.logout(localUsername);
-                        if (server != null) {
-                            server.shutdownNow();
-                        }
-                        inputReader.close();
                         break;
-
-                    }  else if (method == API.GET_ACCOUNTS){
+                    } else if (method == API.GET_ACCOUNTS) {
                         String text_wildcard = "";
                         Logging.logService("Optionally, specify a text (regex) wildcard. Else press enter.");
                         text_wildcard = inputReader.nextLine();
 
-                        if(text_wildcard.equals("")){
+                        if (text_wildcard.equals("")) {
                             System.out.println("Proceeding with no wildcard.");
-                        } else{
+                        } else {
                             System.out.println("Text wildcard: " + text_wildcard);
                         }
 
                         client.getAccounts(text_wildcard);
-                        
                     } else if (method == API.SEND_MESSAGE) {
                         String recipient = "";
                         String message = "";
@@ -328,22 +345,28 @@ public class ClientGRPC {
                         message = inputReader.nextLine();
                         client.sendMessage(username, recipient, message);
 
-                    } else if (method == API.GET_UNDELIVERED_MESSAGES){
+                    } else if (method == API.GET_UNDELIVERED_MESSAGES) {
                         Logging.logService("Delivering undelivered messages to: " + username);
                         client.getUndeliveredMessages(username);
 
                     } else if (method == API.DELETE_ACCOUNT) {
                         Logging.logService("Deleting the account associated to the username: " + username);
                         client.deleteAccount(username);
-                        if (server != null) {
-                            server.shutdownNow();
-                            server = null;
-                        }
+                        break;
                     }
- 
+                } catch (DisconnectException ex) {
+                    Logging.logService("Attempting to restablish connection...");
+                    // TODO: Implement, for now just exit.
+                    break;
                 }
             }
         } finally {
+            inputReader.close();
+            if (server != null) {
+                server.shutdownNow();
+            }
+            client.core.setExit();
+
             // ManagedChannels use resources like threads and TCP connections. To prevent leaking these
             // resources the channel should be shut down when it will no longer be used. If it may be used
             // again leave it running.
