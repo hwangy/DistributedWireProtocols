@@ -14,7 +14,6 @@ import messenger.util.Logging;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 public class ClientGRPC {

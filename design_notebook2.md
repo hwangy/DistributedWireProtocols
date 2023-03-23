@@ -26,3 +26,9 @@ The client was slightly restructured to allow it to properly terminate in respon
 failure. Now, the first that happens after a server IP is entered, is that the user is prompted
 to login or create an account. Afterwards, the grpc connection is established, and a disconnect
 can be detected by checking the channel's status is not `READY`.
+
+To implement redundancy, the primary server (which is the server initialized with offset 0)
+forwards *state altering* requests it receives to the other servers. Non-state altering requests
+are
+- GetAccounts
+- SendMessage **to logged in user**
