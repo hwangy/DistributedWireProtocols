@@ -57,6 +57,7 @@ sourceSets {
 
 task(runServerGRPC, dependsOn: 'classes', type: JavaExec) {
     main = 'messenger.grpc.ServerGRPC'
+    standardInput = System.in
     classpath = sourceSets.main.runtimeClasspath
 }
 

@@ -8,8 +8,10 @@ import messenger.util.Constants;
 import messenger.util.Logging;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -22,9 +24,9 @@ public class ServerGRPC {
      * Start the Message server.
      * @throws IOException  Thrown on network exception
      */
-    private void start() throws IOException {
-        ServerCore core = new ServerCore();
-        server = Grpc.newServerBuilderForPort(Constants.API_PORT, InsecureServerCredentials.create())
+    private void start(int offset, List<MessengerGrpc.MessengerBlockingStub> servers) throws IOException {
+        ServerCore core = new ServerCore(offset, servers);
+        server = Grpc.newServerBuilderForPort(Constants.API_PORT + offset, InsecureServerCredentials.create())
                 .addService(new MessageServerImpl(core))
                 .build()
                 .start();
@@ -67,9 +69,33 @@ public class ServerGRPC {
      */
     public static void main(String[] args) throws IOException, InterruptedException {
         final ServerGRPC server = new ServerGRPC();
-        server.start();
-        Logging.logInfo("Server started on IP address: " + NetworkUtil.getLocalIPAddress());
-        server.blockUntilShutdown();
+
+        // Get server ordering from user
+        Scanner inputReader = new Scanner(System.in);
+        System.out.println("Enter server id:");
+        try {
+            int offset = Integer.parseInt(inputReader.nextLine());
+            List<MessengerGrpc.MessengerBlockingStub> clients = new ArrayList<>();
+            if (offset > 2) {
+                Logging.logService("Invalid offset, exiting.");
+                return;
+            } else if (offset == 0) {
+                // Start clients to forward requests
+                String target1 = "localhost:" + (Constants.API_PORT + 1);
+                String target2 = "localhost:" + (Constants.API_PORT + 2);
+                ManagedChannel channel1 = Grpc.newChannelBuilder(target1, InsecureChannelCredentials.create())
+                        .build();
+                ManagedChannel channel2 = Grpc.newChannelBuilder(target2, InsecureChannelCredentials.create())
+                        .build();
+                clients.add(MessengerGrpc.newBlockingStub(channel1));
+                clients.add(MessengerGrpc.newBlockingStub(channel2));
+            }
+            server.start(offset, clients);
+            Logging.logInfo("Server started on IP address: " + NetworkUtil.getLocalIPAddress());
+            server.blockUntilShutdown();
+        } catch (NumberFormatException ex) {
+            ex.printStackTrace();
+        }
     }
 
     /**

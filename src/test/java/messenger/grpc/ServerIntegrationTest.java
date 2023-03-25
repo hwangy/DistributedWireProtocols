@@ -7,6 +7,8 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+
 public class ServerIntegrationTest {
     /**
      * This rule manages automatic graceful shutdown for the registered servers and channels at the
@@ -25,7 +27,7 @@ public class ServerIntegrationTest {
         String serverName = InProcessServerBuilder.generateName();
 
         // Create a server, add service, start, and register for automatic graceful shutdown.
-        ServerCore core = new ServerCore();
+        ServerCore core = new ServerCore(0, new ArrayList<>());
         grpcCleanup.register(InProcessServerBuilder
                 .forName(serverName).directExecutor().addService(new ServerGRPC.MessageServerImpl(core))
                 .build().start());
