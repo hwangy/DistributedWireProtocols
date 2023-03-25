@@ -5,6 +5,20 @@ import messenger.util.Constants;
 import messenger.util.Logging;
 
 import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+//import org.json.simple.JSONObject;
+//import org.json.simple.JSONArray;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
+import java.lang.reflect.Type;
+import com.google.gson.reflect.TypeToken;
 
 public class ServerCore {
     // Maintain a map of usernames to lists of sent messages
@@ -25,13 +39,75 @@ public class ServerCore {
     // All created and not deleted accounts.
     private final Set<String> allAccounts;
 
+    // FileWriter to write to the all_users file
+    FileWriter usersWriter;
+    // FileWriter to write to the undelivered_messages file
+    FileWriter undeliveredMessagesWriter;
+
     public ServerCore() {
         this.sentMessages = new HashMap<>();
         this.queuedMessagesMap = new HashMap<>();
         this.undeliveredMessages = new HashMap<>();
         this.loggedInUsers = new HashMap<>();
-        this.allAccounts = new HashSet<>();
         this.ipToPorts = new HashMap<>();
+        this.allAccounts = new HashSet<>();
+ 
+        // Create the initialization of the all users and undelivered messages files
+
+        try {
+            BufferedReader usersReader = new BufferedReader(new FileReader("all_users.txt"));
+            Gson gson = new Gson();
+            String userList = usersReader.readLine();
+
+            if (userList == null) {
+                System.out.println("EMPTY FILE");
+                usersWriter = new FileWriter("all_users.txt", false);
+                String json = gson.toJson(allAccounts);
+                usersWriter.write(json);
+                usersWriter.close();
+            } else {
+                System.out.println("File has content");
+                // Add existing accounts in all_users to allAccounts (the list of accounts that exist)
+                this.allAccounts.addAll(gson.fromJson(userList, new TypeToken<HashSet<String>>(){}.getType()));
+            }
+            
+            
+        } catch (IOException e) {
+            System.out.println("IOException");
+            e.printStackTrace();
+        }
+    }
+
+    private void addUser(String username) {
+        try {
+            usersWriter = new FileWriter("all_users.txt", false);
+            allAccounts.add(username);
+            Gson gson = new Gson();
+            String json = gson.toJson(allAccounts);
+            usersWriter.write(json);
+            usersWriter.close();
+        } catch (IOException e) {
+            System.out.println("IOException");
+            e.printStackTrace();
+        }
+    }
+
+    private void deleteUser(String username) {
+        try {
+            usersWriter = new FileWriter("all_users.txt", false);
+            allAccounts.remove(username);
+            Gson gson = new Gson();
+            String json = gson.toJson(allAccounts);
+            usersWriter.write(json);
+            usersWriter.close();
+        } catch (IOException e) {
+            System.out.println("IOException");
+            e.printStackTrace();
+        }
+    }
+
+    private Boolean usernameExists (String username) {
+        return allAccounts.contains(username);
     }
 
     /**
@@ -238,7 +314,8 @@ public class ServerCore {
             Status status = Status.newBuilder().setSuccess(false).setMessage(message).build();
             return LoginReply.newBuilder().setStatus(status).build();
         } else {
-            allAccounts.add(username);
+            //allAccounts.add(username);
+            addUser(username);
             return logInUser(username, request.getIpAddress());
         }
     }
@@ -254,7 +331,8 @@ public class ServerCore {
         String message;
         Boolean success = false;
         if (allAccounts.contains(username)) {
-            allAccounts.remove(username);
+            //allAccounts.remove(username);
+            deleteUser(username);
             // Also clear undelivered messages
             undeliveredMessages.remove(username);
             removeUserConnection(username);
@@ -342,6 +420,7 @@ public class ServerCore {
             removeUserConnection(username);
             message = "User " + username + " logged out successfully.";
         }
+
         return StatusReply.newBuilder().setStatus(Status.newBuilder()
                 .setSuccess(success)
                 .setMessage(message).build()).build();
