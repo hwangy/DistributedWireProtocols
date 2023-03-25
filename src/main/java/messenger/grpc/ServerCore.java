@@ -65,19 +65,29 @@ public class ServerCore {
 
         try {
             BufferedReader usersReader = new BufferedReader(new FileReader("all_users.txt"));
+            BufferedReader undeliveredMessagesReader = new BufferedReader(new FileReader("undelivered_messages.txt"));
             Gson gson = new Gson();
             String userList = usersReader.readLine();
+            String undeliveredMsgList = undeliveredMessagesReader.readLine();
 
             if (userList == null) {
-                System.out.println("EMPTY FILE");
                 usersWriter = new FileWriter("all_users.txt", false);
-                String json = gson.toJson(allAccounts);
-                usersWriter.write(json);
+                String jsonAccts = gson.toJson(allAccounts);
+                usersWriter.write(jsonAccts);
                 usersWriter.close();
             } else {
-                System.out.println("File has content");
                 // Add existing accounts in all_users to allAccounts (the list of accounts that exist)
                 this.allAccounts.addAll(gson.fromJson(userList, new TypeToken<HashSet<String>>(){}.getType()));
+            }
+            
+            if (undeliveredMsgList == null) {
+                usersWriter = new FileWriter("undelivered_messages.txt", false);
+                String jsonMsgs = gson.toJson(undeliveredMessages);
+                usersWriter.write(jsonMsgs);
+                usersWriter.close();
+            } else {
+                // Add existing accounts in all_users to allAccounts (the list of accounts that exist)
+                this.undeliveredMessages.putAll(gson.fromJson(undeliveredMsgList, new TypeToken<HashMap<String, List>>(){}.getType()));
             }
             
             
