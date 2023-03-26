@@ -11,11 +11,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonArray;
-import java.lang.reflect.Type;
 import com.google.gson.reflect.TypeToken;
 
 public class ServerCore {
@@ -42,9 +37,7 @@ public class ServerCore {
     // FileWriter to write to the undelivered_messages file
     FileWriter undeliveredMessagesWriter;
 
-    private Boolean primary;
-
-    public ServerCore(int offset) {
+    public ServerCore() {
         sentMessages = new HashMap<>();
         queuedMessagesMap = new HashMap<>();
         undeliveredMessages = new HashMap<>();

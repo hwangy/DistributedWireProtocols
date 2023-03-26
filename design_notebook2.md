@@ -32,3 +32,10 @@ forwards *state altering* requests it receives to the other servers. Non-state a
 are
 - GetAccounts
 - SendMessage **to logged in user**
+
+# March 26
+>**Decision**
+>Rather than the servers forwarding request to other servers, the client will be tasked with
+>forwarding the request. The reason for this is that the server already needs to maintain a
+>heartbeat with the other servers, in order to check whether they are live. Furthermore, this
+>keeps the servers independent of each other.

@@ -53,6 +53,22 @@ public class ClientGRPC {
     }
 
     /**
+     * Attempt a handshake with the associated server. Returns whether
+     * the server is responsive.
+     *
+     * @return  True if the server is responsive, false otherwise
+     */
+    public Boolean attemptHandshake() {
+        try {
+            blockingStub.handshake(HandshakeRequest.newBuilder().build());
+        } catch (Exception ex) {
+            // Got a network exception
+            return false;
+        }
+        return core.getConnectionStatus();
+    }
+
+    /**
      * Implements API call to create an account. Additionally, this call will provide
      * the server with the client's IP address to facilitate the server forming a
      * client-connection back to this client, in order to send messages addressed to this
@@ -226,18 +242,6 @@ public class ClientGRPC {
         core.setLoggedOutStatus(response);
     }
 
-    private API apiFromInt(int choice) throws APIException {
-        API method;
-        try {
-            method = API.fromInt(choice);
-            return method;
-        } catch (NumberFormatException e) {
-            // Invalid choice selected.
-            Logging.logService("Option must be an integer (between 0 and 6).");
-            return null;
-        }
-    }
-
     public static void main(String[] args) throws Exception {
         BreakableInputReader inputReader = new BreakableInputReader();
 
@@ -246,7 +250,7 @@ public class ClientGRPC {
                 "(leave line blank for `localhost`).");
 
         for (int i = 0; i < 3; i++) {
-            System.out.println("Enter IP address for server" + (i + 1) + " or leave line blank for `localhost`.");
+            System.out.println("Enter IP address for server " + (i + 1) + " or leave line blank for `localhost`.");
             String address = inputReader.nextLine();
             if (address == "") {
                 address = "localhost";
@@ -281,7 +285,7 @@ public class ClientGRPC {
                 "6. Log in to an existing account.";
         int choice = -1;
 
-        Server server = null;
+        Server messageServer = null;
         int currOffset = 0;
         ClientGRPC primaryClient = clientInstances.get(currOffset);
         try {
@@ -319,7 +323,7 @@ public class ClientGRPC {
                             }
                             // Start the service to receive messages
                             if (port > 0) {
-                                server = startMessageReceiver(port);
+                                messageServer = startMessageReceiver(port);
                             }
                         }
                     } else {
@@ -367,27 +371,23 @@ public class ClientGRPC {
                         }
                     }
                 } catch (DisconnectException ex) {
-                    if (server != null) {
-                        server.shutdownNow();
+                    if (messageServer != null) {
+                        messageServer.shutdownNow();
                     }
                     primaryClient.core.setPrimary(false);
-                    primaryClient.core.setLoggedOutStatus(StatusReply.newBuilder()
-                            .setStatus(Status.newBuilder().setSuccess(true).build()).build());
+                    primaryClient.core.setLoggedOutStatus();
                     Logging.logService("Will attempt " + Constants.CLIENT_TIMEOUT +
                             " times to restablish connection...");
                     for (int i = 0; i < Constants.CLIENT_TIMEOUT; i++) {
                         Thread.sleep(500);
+
                         // offset should wrap back around to 0 after 2.
                         currOffset = (currOffset + 1) % 3;
                         Logging.logService("Trying connection to server " + currOffset);
 
                         // Attempt handshake
                         ClientGRPC client = clientInstances.get(currOffset);
-                        try {
-                            client.blockingStub.handshake(HandshakeRequest.newBuilder().build());
-                        } catch (Exception ex2) {
-                        }
-                        if (client.core.getConnectionStatus()) {
+                        if (client.attemptHandshake()) {
                             Logging.logService("Connection restablished. Please log in again to continue.");
                             primaryClient = client;
                             primaryClient.core.setPrimary(true);
@@ -403,8 +403,8 @@ public class ClientGRPC {
             }
         } finally {
             inputReader.close();
-            if (server != null) {
-                server.shutdownNow();
+            if (messageServer != null) {
+                messageServer.shutdownNow();
             }
             for (ClientGRPC client : clientInstances) {
                 client.core.setExit();

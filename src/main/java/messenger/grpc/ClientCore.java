@@ -95,6 +95,11 @@ public class ClientCore {
         return status.getSuccess();
     }
 
+    public Boolean setLoggedOutStatus() {
+        return setLoggedOutStatus(StatusReply.newBuilder()
+                .setStatus(Status.newBuilder().setSuccess(true).build()).build());
+    }
+
     /**
      * Sets the client's internal status to logged out by updating the username to null.
      * @param response  The response from the server

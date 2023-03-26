@@ -25,7 +25,7 @@ public class ServerGRPC {
      * @throws IOException  Thrown on network exception
      */
     private void start(int offset) throws IOException {
-        ServerCore core = new ServerCore(offset);
+        ServerCore core = new ServerCore();
         server = Grpc.newServerBuilderForPort(Constants.API_PORT + offset, InsecureServerCredentials.create())
                 .addService(new MessageServerImpl(core))
                 .build()
