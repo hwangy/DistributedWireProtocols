@@ -18,6 +18,7 @@ service Messenger {
   rpc Login (LoginRequest) returns (LoginReply) {}
   rpc Logout (LogoutRequest) returns (StatusReply) {}
   rpc Handshake (HandshakeRequest) returns (HandshakeResponse) {}
+  rpc MarkAsPrimary (SetPrimaryRequest) returns (StatusReply) {}
 }
 
 // Separate service for which the clients act *as the service.*
@@ -25,6 +26,9 @@ service Messenger {
 // to the correct client.
 service MessageReceiver {
   rpc SendMessage (Message) returns (StatusReply) {}
+}
+
+message SetPrimaryRequest {
 }
 
 message HandshakeRequest {
@@ -47,8 +51,7 @@ message StatusReply {
 
 // A request which is used for creating an account
 message CreateAccountRequest {
-  string ip_address = 1;
-  string username = 2;
+  string username = 1;
 }
 
 // When the user logs in, the client replies with a unique

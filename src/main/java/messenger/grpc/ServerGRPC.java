@@ -108,6 +108,14 @@ public class ServerGRPC {
         }
 
         @Override
+        public void markAsPrimary(SetPrimaryRequest req, StreamObserver<StatusReply> responseObservers) {
+            StatusReply reply = core.markAsPrimaryAPI(req);
+            responseObservers.onNext(reply);
+            responseObservers.onCompleted();
+
+        }
+
+        @Override
         public void handshake(HandshakeRequest req, StreamObserver<HandshakeResponse> responseObservers) {
             responseObservers.onNext(HandshakeResponse.newBuilder().setIsPrimary(core.isPrimary()).build());
             responseObservers.onCompleted();
@@ -119,13 +127,7 @@ public class ServerGRPC {
          */
         @Override
         public void createAccount(CreateAccountRequest req, StreamObserver<LoginReply> responseObserver) {
-            LoginReply reply = core.createAccountAPI(req);
-            responseObserver.onNext(reply);
-            if (!req.getIpAddress().isEmpty()) {
-                MessageHandler handler = new MessageHandler(core, req.getUsername(),
-                        new Address(req.getIpAddress(), reply.getReceiverPort()));
-                new Thread(handler).start();
-            }
+            responseObserver.onNext(core.createAccountAPI(req));
             responseObserver.onCompleted();
         }
 

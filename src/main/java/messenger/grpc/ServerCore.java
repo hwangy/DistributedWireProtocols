@@ -195,8 +195,6 @@ public class ServerCore {
      * @return              A LoginReply indicating status of the login request.
      */
     private LoginReply logInUser(String username, String ipAddress) {
-        Logging.logDebug("Setting as primary.");
-        setPrimary(true);
         String message;
         if (!allAccounts.contains(username)) {
             message = "User " + username + " does not exist and cannot be logged in.";
@@ -289,6 +287,12 @@ public class ServerCore {
         return loggedInUsers.containsKey(username);
     }
 
+    public StatusReply markAsPrimaryAPI(SetPrimaryRequest request) {
+        setPrimary(true);
+        return StatusReply.newBuilder().setStatus(
+                Status.newBuilder().setSuccess(true).setMessage("Server set as primary")).build();
+    }
+
     /**
      * Fetches all users registered with the server.
      *
@@ -331,7 +335,9 @@ public class ServerCore {
         } else {
             //allAccounts.add(username);
             addUser(username);
-            return logInUser(username, request.getIpAddress());
+
+            Status status = Status.newBuilder().setSuccess(true).setMessage("User created successfully.").build();
+            return LoginReply.newBuilder().setStatus(status).build();
         }
     }
 

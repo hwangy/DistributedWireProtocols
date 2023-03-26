@@ -1,11 +1,15 @@
 package messenger.util;
 
+import messenger.grpc.ClientCore;
+
 /**
  * Helper methods for wrapping the different kinds of messages
  * to be printed on the console, both on the Server and Client
  * side.
  */
 public class Logging {
+    private final ClientCore core;
+
     /**
      * Logs a message giving unrequested information
      * about the status of either the server or client.
@@ -32,5 +36,17 @@ public class Logging {
      */
     public static void logService(String toLog) {
         System.out.printf("[SERVICE] %s\n", toLog);
+    }
+
+    public Logging(ClientCore core) {
+        this.core = core;
+    }
+
+    public void logInfoWithContext(String toLog) {
+        if (core.isPrimary()) Logging.logInfo(toLog);
+    }
+
+    public void logServiceWithContext(String toLog) {
+        if (core.isPrimary()) Logging.logService(toLog);
     }
 }

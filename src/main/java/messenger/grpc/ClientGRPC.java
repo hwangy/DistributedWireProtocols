@@ -3,7 +3,6 @@ package messenger.grpc;
 import io.grpc.*;
 import io.grpc.stub.StreamObserver;
 import messenger.api.API;
-import messenger.api.APIException;
 import messenger.api.DisconnectException;
 import messenger.network.NetworkUtil;
 import messenger.network.PulseCheck;
@@ -21,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 public class ClientGRPC {
     public final MessengerGrpc.MessengerBlockingStub blockingStub;
     public final ClientCore core;
+    public final Logging logger;
 
     private static List<ClientGRPC> clientInstances = new ArrayList<>();
 
@@ -28,6 +28,7 @@ public class ClientGRPC {
         core = new ClientCore(channel);
         // Initialize stub which makes API calls.
         blockingStub = MessengerGrpc.newBlockingStub(channel);
+        logger = new Logging(core);
     }
 
     /**
@@ -69,34 +70,22 @@ public class ClientGRPC {
     }
 
     /**
-     * Implements API call to create an account. Additionally, this call will provide
-     * the server with the client's IP address to facilitate the server forming a
-     * client-connection back to this client, in order to send messages addressed to this
-     * client.
+     * Implements API call to create an account.
      * @param username  The username to associate to this client.
-     * @return int      The port on which to start the MessageReceiver
+     * @return Boolean  Success of request
      */
-    public int createAccount(String username) {
-        // Try to fetch the local IP address to provide to server
-        String ipAddress = null;
-        try {
-            ipAddress = NetworkUtil.getLocalIPAddress();
-        } catch (UnknownHostException ex) {
-            Logging.logInfo("Failed to get local IP address, message handler will NOT be started.");
-        }
+    public Boolean createAccount(String username) {
         CreateAccountRequest request = CreateAccountRequest.newBuilder()
                 .setUsername(username)
-                .setIpAddress(ipAddress)
                 .build();
         LoginReply response;
         try {
             response = blockingStub.createAccount(request);
-            // Log in the user
-            core.setLoggedInStatus(username, response);
-            return response.getReceiverPort();
+            logger.logServiceWithContext(response.getStatus().getMessage());
+            return response.getStatus().getSuccess();
         } catch (StatusRuntimeException e) {
-            Logging.logInfo("RPC failed: " + e.getStatus());
-            return -1;
+            logger.logInfoWithContext("RPC failed: " + e.getStatus());
+            return false;
         }
     }
 
@@ -111,10 +100,10 @@ public class ClientGRPC {
         StatusReply response;
         try {
             response = blockingStub.deleteAccount(request);
-            Logging.logService(response.getStatus().getMessage());
+            logger.logServiceWithContext(response.getStatus().getMessage());
             core.setLoggedOutStatus(response);
         } catch (StatusRuntimeException e) {
-            Logging.logInfo("RPC failed: " + e.getStatus());
+            logger.logInfoWithContext("RPC failed: " + e.getStatus());
         }
     }
 
@@ -131,13 +120,12 @@ public class ClientGRPC {
         try {
             response = blockingStub.getAccounts(request);
 
-            Logging.logService("Found accounts: ");
+            logger.logServiceWithContext("Found accounts: ");
             for (String account : response.getAccountsList()) {
-                Logging.logService("\t" + account);
+                logger.logServiceWithContext("\t" + account);
             }
         } catch (StatusRuntimeException e) {
-            Logging.logInfo("RPC failed: " + e.getStatus());
-            return;
+            logger.logInfoWithContext("RPC failed: " + e.getStatus());
         }
     }
 
@@ -154,7 +142,7 @@ public class ClientGRPC {
         try {
             response = blockingStub.getUndeliveredMessages(request);
         } catch (StatusRuntimeException e) {
-            Logging.logInfo("RPC failed: " + e.getStatus());
+            logger.logInfoWithContext("RPC failed: " + e.getStatus());
             return;
         }
         for (Message message : response.getMessagesList()) {
@@ -167,8 +155,9 @@ public class ClientGRPC {
      * @param sender The sender of the message
      * @param recipient The recipient of the message
      * @param message The message to send
+     * @return Boolean  Whether the message was queued or not.
      */
-    public void sendMessage(String sender, String recipient, String message) {
+    public Boolean sendMessage(String sender, String recipient, String message) {
         Message message_object = Message.newBuilder()
             .setSentTimestamp(System.currentTimeMillis())
             .setSender(sender)
@@ -181,11 +170,12 @@ public class ClientGRPC {
         StatusReply response;
         try {
             response = blockingStub.sendMessage(request);
+            logger.logServiceWithContext(response.getStatus().getMessage());
+            return response.getStatus().getMessage().contains("queued");
         } catch (StatusRuntimeException e) {
-            Logging.logInfo("RPC failed: " + e.getStatus());
-            return;
+            logger.logInfoWithContext("RPC failed: " + e.getStatus());
+            return false;
         }
-        Logging.logService(response.getStatus().getMessage());
     }
 
      /**
@@ -213,12 +203,21 @@ public class ClientGRPC {
 
         try {
             response = blockingStub.login(request);
-            core.setLoggedInStatus(username, response);
-            return response.getReceiverPort();
+            if (response.getStatus().getSuccess()) {
+                core.setLoggedInStatus(username, response);
+                return response.getReceiverPort();
+            } else {
+                Logging.logService(response.getStatus().getMessage());
+                return -1;
+            }
         } catch (StatusRuntimeException e) {
             Logging.logInfo("RPC failed: " + e.getStatus());
             return -1;
         }
+    }
+
+    public void markAsPrimary() {
+        blockingStub.markAsPrimary(SetPrimaryRequest.newBuilder().build());
     }
 
      /**
@@ -268,7 +267,6 @@ public class ClientGRPC {
             new Thread(new PulseCheck(client)).start();
 
             if (resp.getIsPrimary()) {
-                Logging.logDebug("Server " + i + " is primary.");
                 primaryOffset = i;
             }
             clientInstances.add(client);
@@ -319,7 +317,18 @@ public class ClientGRPC {
                             int port;
                             if (method == API.CREATE_ACCOUNT) {
                                 Logging.logService("Pick your username.");
-                                port = primaryClient.createAccount(inputReader.nextLine());
+                                String localUsername = inputReader.nextLine();
+                                if (!primaryClient.createAccount(localUsername)) {
+                                    continue;
+                                }
+                                port = primaryClient.login(localUsername);
+
+                                // Forward account creation
+                                for (ClientGRPC client : clientInstances) {
+                                    if (client != primaryClient && client.core.getConnectionStatus()) {
+                                        client.createAccount(localUsername);
+                                    }
+                                }
                             } else {
                                 Logging.logService("Select the username.");
                                 port = primaryClient.login(inputReader.nextLine());
@@ -361,15 +370,33 @@ public class ClientGRPC {
 
                             Logging.logService("Specify your message.");
                             message = inputReader.nextLine();
-                            primaryClient.sendMessage(username, recipient, message);
 
+                            // Forward undelivered messages
+                            if (primaryClient.sendMessage(username, recipient, message)) {
+                                for (ClientGRPC client : clientInstances) {
+                                    if (client != primaryClient && client.core.getConnectionStatus()) {
+                                        client.sendMessage(username, recipient, message);
+                                    }
+                                }
+                            }
                         } else if (method == API.GET_UNDELIVERED_MESSAGES) {
                             Logging.logService("Delivering undelivered messages to: " + username);
                             primaryClient.getUndeliveredMessages(username);
 
+                            for (ClientGRPC client : clientInstances) {
+                                if (client != primaryClient && client.core.getConnectionStatus()) {
+                                    client.getUndeliveredMessages(username);
+                                }
+                            }
                         } else if (method == API.DELETE_ACCOUNT) {
                             Logging.logService("Deleting the account associated to the username: " + username);
                             primaryClient.deleteAccount(username);
+
+                            for (ClientGRPC client : clientInstances) {
+                                if (client != primaryClient && client.core.getConnectionStatus()) {
+                                    client.deleteAccount(username);
+                                }
+                            }
                             break;
                         }
                     }
@@ -395,6 +422,7 @@ public class ClientGRPC {
                             Logging.logService("Connection restablished. Please log in again to continue.");
                             primaryClient = client;
                             primaryClient.core.setPrimary(true);
+                            primaryClient.markAsPrimary();
                             inputReader.setClientCore(primaryClient.core);
                             success = true;
                             break;
