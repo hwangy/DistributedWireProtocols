@@ -117,6 +117,13 @@ public class ServerGRPC {
             this.core = core;
         }
 
+        @Override
+        public void handshake(HandshakeRequest req, StreamObserver<StatusReply> responseObservers) {
+            Status status = Status.newBuilder().setSuccess(true).setMessage("Connection established.").build();
+            responseObservers.onNext(StatusReply.newBuilder().setStatus(status).build());
+            responseObservers.onCompleted();
+        }
+
         /**
          * The folowing two methods, createAccount and login, also start a MessageHandler
          * service which sends messages received to the user which is logged in.
