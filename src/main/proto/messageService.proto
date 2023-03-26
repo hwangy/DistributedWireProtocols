@@ -17,7 +17,7 @@ service Messenger {
   rpc SendMessage (SendMessageRequest) returns (StatusReply) {}
   rpc Login (LoginRequest) returns (LoginReply) {}
   rpc Logout (LogoutRequest) returns (StatusReply) {}
-  rpc Handshake (HandshakeRequest) returns (StatusReply) {}
+  rpc Handshake (HandshakeRequest) returns (HandshakeResponse) {}
 }
 
 // Separate service for which the clients act *as the service.*
@@ -28,6 +28,10 @@ service MessageReceiver {
 }
 
 message HandshakeRequest {
+}
+
+message HandshakeResponse {
+  bool isPrimary = 1;
 }
 
 // Indicates the success or failure of a request, with optional message

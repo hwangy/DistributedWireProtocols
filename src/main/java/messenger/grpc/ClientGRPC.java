@@ -249,6 +249,7 @@ public class ClientGRPC {
         System.out.println("Enter " +
                 "(leave line blank for `localhost`).");
 
+        int primaryOffset = 0;
         for (int i = 0; i < 3; i++) {
             System.out.println("Enter IP address for server " + (i + 1) + " or leave line blank for `localhost`.");
             String address = inputReader.nextLine();
@@ -261,19 +262,23 @@ public class ClientGRPC {
             // Start pulsecheck for each server
             ManagedChannel channel = Grpc.newChannelBuilder(destAddress, InsecureChannelCredentials.create()).build();
             ClientGRPC client = new ClientGRPC(channel);
-            client.blockingStub.handshake(HandshakeRequest.newBuilder().build());
+            HandshakeResponse resp = client.blockingStub.handshake(HandshakeRequest.newBuilder().build());
             client.core.setConnected();
 
             new Thread(new PulseCheck(client)).start();
 
-            if (i == 0) {
-                // Input reader is breakable only for the primary client
-                client.core.setPrimary(true);
-                inputReader.setClientCore(client.core);
+            if (resp.getIsPrimary()) {
+                Logging.logDebug("Server " + i + " is primary.");
+                primaryOffset = i;
             }
-            Logging.logDebug("Offset " + i + " status " + client.core.getConnectionStatus());
             clientInstances.add(client);
         }
+
+        Logging.logService("Server " + primaryOffset + " set as primary.");
+        // Input reader is breakable only for the primary client
+        ClientGRPC primaryClient = clientInstances.get(primaryOffset);
+        primaryClient.core.setPrimary(true);
+        inputReader.setClientCore(primaryClient.core);
 
         String options = "Pick an option:\n" +
                 "0. Exit (and log-out).\n" +
@@ -286,8 +291,6 @@ public class ClientGRPC {
         int choice = -1;
 
         Server messageServer = null;
-        int currOffset = 0;
-        ClientGRPC primaryClient = clientInstances.get(currOffset);
         try {
             while (true) {
                 try {
@@ -378,27 +381,31 @@ public class ClientGRPC {
                     primaryClient.core.setLoggedOutStatus();
                     Logging.logService("Will attempt " + Constants.CLIENT_TIMEOUT +
                             " times to restablish connection...");
+                    boolean success = false;
                     for (int i = 0; i < Constants.CLIENT_TIMEOUT; i++) {
                         Thread.sleep(500);
 
                         // offset should wrap back around to 0 after 2.
-                        currOffset = (currOffset + 1) % 3;
-                        Logging.logService("Trying connection to server " + currOffset);
+                        primaryOffset = (primaryOffset + 1) % 3;
+                        Logging.logService("Trying connection to server " + primaryOffset);
 
                         // Attempt handshake
-                        ClientGRPC client = clientInstances.get(currOffset);
+                        ClientGRPC client = clientInstances.get(primaryOffset);
                         if (client.attemptHandshake()) {
                             Logging.logService("Connection restablished. Please log in again to continue.");
                             primaryClient = client;
                             primaryClient.core.setPrimary(true);
                             inputReader.setClientCore(primaryClient.core);
+                            success = true;
                             break;
                         } else {
                             Logging.logService("Failed to connect.");
                         }
                     }
-                    Logging.logService("Last attempt failed, terminating...");
-                    break;
+                    if (!success) {
+                        Logging.logService("Last attempt failed, terminating...");
+                        break;
+                    }
                 }
             }
         } finally {

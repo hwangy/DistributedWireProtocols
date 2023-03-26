@@ -108,9 +108,8 @@ public class ServerGRPC {
         }
 
         @Override
-        public void handshake(HandshakeRequest req, StreamObserver<StatusReply> responseObservers) {
-            Status status = Status.newBuilder().setSuccess(true).setMessage("Connection established.").build();
-            responseObservers.onNext(StatusReply.newBuilder().setStatus(status).build());
+        public void handshake(HandshakeRequest req, StreamObserver<HandshakeResponse> responseObservers) {
+            responseObservers.onNext(HandshakeResponse.newBuilder().setIsPrimary(core.isPrimary()).build());
             responseObservers.onCompleted();
         }
 

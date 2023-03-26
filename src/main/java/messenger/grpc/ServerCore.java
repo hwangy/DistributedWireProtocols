@@ -37,6 +37,9 @@ public class ServerCore {
     // FileWriter to write to the undelivered_messages file
     FileWriter undeliveredMessagesWriter;
 
+    // Keeps track of whether the current server is the primary
+    private Boolean isPrimary = false;
+
     public ServerCore() {
         sentMessages = new HashMap<>();
         queuedMessagesMap = new HashMap<>();
@@ -113,6 +116,13 @@ public class ServerCore {
         return allAccounts.contains(username);
     }
 
+    private void setPrimary(Boolean isPrimary) {
+        this.isPrimary = isPrimary;
+    }
+    public Boolean isPrimary() {
+        return isPrimary;
+    }
+
     /**
      * Returns the next port to assign to a user, assuming
      * the other ports in the list have been assigned. This
@@ -185,6 +195,8 @@ public class ServerCore {
      * @return              A LoginReply indicating status of the login request.
      */
     private LoginReply logInUser(String username, String ipAddress) {
+        Logging.logDebug("Setting as primary.");
+        setPrimary(true);
         String message;
         if (!allAccounts.contains(username)) {
             message = "User " + username + " does not exist and cannot be logged in.";
