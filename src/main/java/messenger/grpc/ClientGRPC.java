@@ -216,8 +216,17 @@ public class ClientGRPC {
         }
     }
 
-    public void markAsPrimary() {
-        blockingStub.markAsPrimary(SetPrimaryRequest.newBuilder().build());
+    public Boolean isPrimary() {
+        return core.isPrimary();
+    }
+
+    public void setPrimary(Boolean primary) {
+        core.setPrimary(primary);
+        if (primary) {
+            blockingStub.markAsPrimary(SetPrimaryRequest.newBuilder().build());
+        } else {
+            core.setLoggedOutStatus();
+        }
     }
 
      /**
@@ -241,13 +250,15 @@ public class ClientGRPC {
         core.setLoggedOutStatus(response);
     }
 
+    public void shutdown() throws InterruptedException {
+        core.setExit();
+        core.getChannel().shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
+    }
+
     public static void main(String[] args) throws Exception {
         BreakableInputReader inputReader = new BreakableInputReader();
 
         // Get server IP address from user.
-        System.out.println("Enter " +
-                "(leave line blank for `localhost`).");
-
         int primaryOffset = 0;
         for (int i = 0; i < 3; i++) {
             System.out.println("Enter IP address for server " + (i + 1) + " or leave line blank for `localhost`.");
@@ -404,11 +415,10 @@ public class ClientGRPC {
                     if (messageServer != null) {
                         messageServer.shutdownNow();
                     }
-                    primaryClient.core.setPrimary(false);
-                    primaryClient.core.setLoggedOutStatus();
+                    primaryClient.setPrimary(false);
+
                     Logging.logService("Will attempt " + Constants.CLIENT_TIMEOUT +
                             " times to restablish connection...");
-                    boolean success = false;
                     for (int i = 0; i < Constants.CLIENT_TIMEOUT; i++) {
                         Thread.sleep(500);
 
@@ -421,16 +431,15 @@ public class ClientGRPC {
                         if (client.attemptHandshake()) {
                             Logging.logService("Connection restablished. Please log in again to continue.");
                             primaryClient = client;
-                            primaryClient.core.setPrimary(true);
-                            primaryClient.markAsPrimary();
+                            primaryClient.setPrimary(true);
                             inputReader.setClientCore(primaryClient.core);
-                            success = true;
+
                             break;
                         } else {
                             Logging.logService("Failed to connect.");
                         }
                     }
-                    if (!success) {
+                    if (!primaryClient.isPrimary()) {
                         Logging.logService("Last attempt failed, terminating...");
                         break;
                     }
@@ -442,13 +451,8 @@ public class ClientGRPC {
                 messageServer.shutdownNow();
             }
             for (ClientGRPC client : clientInstances) {
-                client.core.setExit();
-                client.core.getChannel().shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
+                client.shutdown();
             }
-
-            // ManagedChannels use resources like threads and TCP connections. To prevent leaking these
-            // resources the channel should be shut down when it will no longer be used. If it may be used
-            // again leave it running.
         }
     }
 
