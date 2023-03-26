@@ -24,8 +24,8 @@ public class ServerGRPC {
      * Start the Message server.
      * @throws IOException  Thrown on network exception
      */
-    private void start(int offset, List<MessengerGrpc.MessengerBlockingStub> servers) throws IOException {
-        ServerCore core = new ServerCore(offset, servers);
+    private void start(int offset) throws IOException {
+        ServerCore core = new ServerCore(offset);
         server = Grpc.newServerBuilderForPort(Constants.API_PORT + offset, InsecureServerCredentials.create())
                 .addService(new MessageServerImpl(core))
                 .build()
@@ -79,18 +79,8 @@ public class ServerGRPC {
             if (offset > 2) {
                 Logging.logService("Invalid offset, exiting.");
                 return;
-            } else if (offset == 0) {
-                // Start clients to forward requests
-                String target1 = "localhost:" + (Constants.API_PORT + 1);
-                String target2 = "localhost:" + (Constants.API_PORT + 2);
-                ManagedChannel channel1 = Grpc.newChannelBuilder(target1, InsecureChannelCredentials.create())
-                        .build();
-                ManagedChannel channel2 = Grpc.newChannelBuilder(target2, InsecureChannelCredentials.create())
-                        .build();
-                clients.add(MessengerGrpc.newBlockingStub(channel1));
-                clients.add(MessengerGrpc.newBlockingStub(channel2));
             }
-            server.start(offset, clients);
+            server.start(offset);
             Logging.logInfo("Server started on IP address: " + NetworkUtil.getLocalIPAddress());
             server.blockUntilShutdown();
         } catch (NumberFormatException ex) {

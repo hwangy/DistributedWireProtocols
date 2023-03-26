@@ -27,7 +27,7 @@ public class ServerIntegrationTest {
         String serverName = InProcessServerBuilder.generateName();
 
         // Create a server, add service, start, and register for automatic graceful shutdown.
-        ServerCore core = new ServerCore(0, new ArrayList<>());
+        ServerCore core = new ServerCore(0);
         grpcCleanup.register(InProcessServerBuilder
                 .forName(serverName).directExecutor().addService(new ServerGRPC.MessageServerImpl(core))
                 .build().start());

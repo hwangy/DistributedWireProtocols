@@ -13,12 +13,15 @@ dependencies {
     compileOnly "org.apache.tomcat:annotations-api:6.0.53"
     implementation "io.grpc:grpc-protobuf:${grpcVersion}"
     implementation "io.grpc:grpc-stub:${grpcVersion}"
+    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    implementation 'com.google.code.gson:gson:2.10.1'
 
     runtimeOnly "io.grpc:grpc-netty-shaded:${grpcVersion}"
 
     testImplementation "io.grpc:grpc-testing:${grpcVersion}"
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8+'
     testImplementation "org.mockito:mockito-core:3.+"
+    
 }
 
 buildscript {
