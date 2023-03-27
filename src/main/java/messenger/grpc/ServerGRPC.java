@@ -24,8 +24,8 @@ public class ServerGRPC {
      * Start the Message server.
      * @throws IOException  Thrown on network exception
      */
-    private void start(int offset, List<MessengerGrpc.MessengerBlockingStub> servers) throws IOException {
-        ServerCore core = new ServerCore(offset, servers);
+    private void start(int offset) throws IOException {
+        ServerCore core = new ServerCore();
         server = Grpc.newServerBuilderForPort(Constants.API_PORT + offset, InsecureServerCredentials.create())
                 .addService(new MessageServerImpl(core))
                 .build()
@@ -79,18 +79,8 @@ public class ServerGRPC {
             if (offset > 2) {
                 Logging.logService("Invalid offset, exiting.");
                 return;
-            } else if (offset == 0) {
-                // Start clients to forward requests
-                String target1 = "localhost:" + (Constants.API_PORT + 1);
-                String target2 = "localhost:" + (Constants.API_PORT + 2);
-                ManagedChannel channel1 = Grpc.newChannelBuilder(target1, InsecureChannelCredentials.create())
-                        .build();
-                ManagedChannel channel2 = Grpc.newChannelBuilder(target2, InsecureChannelCredentials.create())
-                        .build();
-                clients.add(MessengerGrpc.newBlockingStub(channel1));
-                clients.add(MessengerGrpc.newBlockingStub(channel2));
             }
-            server.start(offset, clients);
+            server.start(offset);
             Logging.logInfo("Server started on IP address: " + NetworkUtil.getLocalIPAddress());
             server.blockUntilShutdown();
         } catch (NumberFormatException ex) {
@@ -117,19 +107,27 @@ public class ServerGRPC {
             this.core = core;
         }
 
+        @Override
+        public void markAsPrimary(SetPrimaryRequest req, StreamObserver<StatusReply> responseObservers) {
+            StatusReply reply = core.markAsPrimaryAPI(req);
+            responseObservers.onNext(reply);
+            responseObservers.onCompleted();
+
+        }
+
+        @Override
+        public void handshake(HandshakeRequest req, StreamObserver<HandshakeResponse> responseObservers) {
+            responseObservers.onNext(HandshakeResponse.newBuilder().setIsPrimary(core.isPrimary()).build());
+            responseObservers.onCompleted();
+        }
+
         /**
          * The folowing two methods, createAccount and login, also start a MessageHandler
          * service which sends messages received to the user which is logged in.
          */
         @Override
         public void createAccount(CreateAccountRequest req, StreamObserver<LoginReply> responseObserver) {
-            LoginReply reply = core.createAccountAPI(req);
-            responseObserver.onNext(reply);
-            if (!req.getIpAddress().isEmpty()) {
-                MessageHandler handler = new MessageHandler(core, req.getUsername(),
-                        new Address(req.getIpAddress(), reply.getReceiverPort()));
-                new Thread(handler).start();
-            }
+            responseObserver.onNext(core.createAccountAPI(req));
             responseObserver.onCompleted();
         }
 

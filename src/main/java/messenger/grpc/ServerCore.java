@@ -10,15 +10,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-//import org.json.simple.JSONObject;
-//import org.json.simple.JSONArray;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonArray;
-import java.lang.reflect.Type;
 import com.google.gson.reflect.TypeToken;
 
 public class ServerCore {
@@ -45,23 +38,17 @@ public class ServerCore {
     // FileWriter to write to the undelivered_messages file
     FileWriter undeliveredMessagesWriter;
 
-    // List of servers to forward requests
-    private final List<MessengerGrpc.MessengerBlockingStub> servers;
+    // Keeps track of whether the current server is the primary
+    private Boolean isPrimary = false;
 
-    private final int offset;
-    private Boolean primary;
-
-    public ServerCore(int offset, List<MessengerGrpc.MessengerBlockingStub> servers) {
-        this.offset = offset;
-        primary = offset == 0;
+    public ServerCore() {
         sentMessages = new HashMap<>();
         queuedMessagesMap = new HashMap<>();
         undeliveredMessages = new HashMap<>();
         loggedInUsers = new HashMap<>();
         allAccounts = new HashSet<>();
         ipToPorts = new HashMap<>();
-        this.servers = servers;
- 
+
         // Create the initialization of the all users and undelivered messages files
 
         try {
@@ -103,18 +90,6 @@ public class ServerCore {
             System.out.println("IOException");
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Registers a client connection to a server to forward requests to.
-     * @param server    A client connection to a destination server
-     */
-    public void addServer(MessengerGrpc.MessengerBlockingStub server) {
-        servers.add(server);
-    }
-
-    public boolean isPrimary() {
-        return primary;
     }
 
     private void addUser(String username) {
@@ -171,6 +146,12 @@ public class ServerCore {
         List<Message> messages;
         messages = undeliveredMessages.get(username);
         return messages;
+
+    private void setPrimary(Boolean isPrimary) {
+        this.isPrimary = isPrimary;
+    }
+    public Boolean isPrimary() {
+        return isPrimary;
     }
 
     /**
@@ -337,6 +318,12 @@ public class ServerCore {
         return loggedInUsers.containsKey(username);
     }
 
+    public StatusReply markAsPrimaryAPI(SetPrimaryRequest request) {
+        setPrimary(true);
+        return StatusReply.newBuilder().setStatus(
+                Status.newBuilder().setSuccess(true).setMessage("Server set as primary")).build();
+    }
+
     /**
      * Fetches all users registered with the server.
      *
@@ -371,9 +358,6 @@ public class ServerCore {
      *                  succeeded or failed.
      */
     public LoginReply createAccountAPI(CreateAccountRequest request) {
-        for (MessengerGrpc.MessengerBlockingStub client : servers) {
-            client.createAccount(request);
-        }
         String username = request.getUsername();
         if (allAccounts.contains(username)) {
             String message = "User " + username + " already exists.";
@@ -382,7 +366,9 @@ public class ServerCore {
         } else {
             //allAccounts.add(username);
             addUser(username);
-            return logInUser(username, request.getIpAddress());
+
+            Status status = Status.newBuilder().setSuccess(true).setMessage("User created successfully.").build();
+            return LoginReply.newBuilder().setStatus(status).build();
         }
     }
 
@@ -393,9 +379,6 @@ public class ServerCore {
      * @return          A status object, which is always successful.
      */
     public StatusReply deleteAccountAPI(DeleteAccountRequest request) {
-        for (MessengerGrpc.MessengerBlockingStub client : servers) {
-            client.deleteAccount(request);
-        }
         String username = request.getUsername();
         String message;
         Boolean success = false;
@@ -466,11 +449,6 @@ public class ServerCore {
             // Otherwise add to undelivered messages for future delivery
             addMessageToList(undeliveredMessages, message);
             status = Status.newBuilder().setSuccess(true).setMessage("Message queued for delivery.").build();
-
-            // Only forward requests for non-logged in users.
-            for (MessengerGrpc.MessengerBlockingStub client : servers) {
-                client.sendMessage(request);
-            }
         }
         return StatusReply.newBuilder().setStatus(status).build();
     }
@@ -483,10 +461,6 @@ public class ServerCore {
      * @return          A status message indicating success or failure.
      */
     public LoginReply loginUserAPI(LoginRequest request) {
-        for (MessengerGrpc.MessengerBlockingStub client : servers) {
-            client.login(request);
-        }
-
         return logInUser(request.getUsername(), request.getIpAddress());
     }
 
@@ -496,10 +470,6 @@ public class ServerCore {
      * @return          A status message indicating success or failure.
      */
     public StatusReply logoutUserAPI(LogoutRequest request) {
-        for (MessengerGrpc.MessengerBlockingStub client : servers) {
-            client.logout(request);
-        }
-
         Boolean success = false;
         String username = request.getUsername();
         String message;

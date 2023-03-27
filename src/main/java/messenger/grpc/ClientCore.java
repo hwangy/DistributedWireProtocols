@@ -1,5 +1,7 @@
 package messenger.grpc;
 
+import io.grpc.ConnectivityState;
+import io.grpc.ManagedChannel;
 import messenger.util.Logging;
 
 public class ClientCore {
@@ -13,9 +15,48 @@ public class ClientCore {
     // A boolean flag to signal the client should exit
     private Boolean exit = false;
 
+    private ManagedChannel channel;
+
+    private Boolean isPrimary = false;
+
     public ClientCore() {
-        this.username = null;
+        username = null;
         connectionEstablished = false;
+        channel = null;
+    }
+
+    public ClientCore(ManagedChannel channel) {
+        username = null;
+        connectionEstablished = false;
+        this.channel = channel;
+    }
+
+    public Boolean isPrimary() {
+        return isPrimary;
+    }
+
+    public void setPrimary(Boolean primary) {
+        isPrimary = primary;
+    }
+
+    /**
+     * Returns the current channel used by the client
+     * @return  A ManagedChannel
+     */
+    public ManagedChannel getChannel() {
+        return channel;
+    }
+
+    /**
+     * Sets a new channel, e.g. if the prevous server has disconnected.
+     * @param channel
+     */
+    public void setChannel(ManagedChannel channel) {
+        this.channel = channel;
+    }
+
+    public Boolean isChannelReady() {
+        return channel.getState(false).equals(ConnectivityState.READY);
     }
 
     /**
@@ -52,6 +93,11 @@ public class ClientCore {
 
         Logging.logService(status.getMessage());
         return status.getSuccess();
+    }
+
+    public Boolean setLoggedOutStatus() {
+        return setLoggedOutStatus(StatusReply.newBuilder()
+                .setStatus(Status.newBuilder().setSuccess(true).build()).build());
     }
 
     /**
