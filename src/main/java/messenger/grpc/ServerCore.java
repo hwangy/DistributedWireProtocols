@@ -6,6 +6,7 @@ import messenger.util.Logging;
 
 import java.util.*;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -64,6 +65,13 @@ public class ServerCore {
         // Create the initialization of the all users and undelivered messages files
 
         try {
+            File allUsersFile = new File("all_users.txt");
+            // Creates file if doesn't exist
+            allUsersFile.createNewFile();
+            File undeliveredMsgsFile = new File("undelivered_messages.txt");
+            // Creates file if doesn't exist
+            undeliveredMsgsFile.createNewFile();
+
             BufferedReader usersReader = new BufferedReader(new FileReader("all_users.txt"));
             BufferedReader undeliveredMessagesReader = new BufferedReader(new FileReader("undelivered_messages.txt"));
             Gson gson = new Gson();
@@ -139,6 +147,30 @@ public class ServerCore {
 
     private Boolean usernameExists (String username) {
         return allAccounts.contains(username);
+    }
+
+    private void removeUndeliveredMessage(String username) {
+        try {
+            undeliveredMessagesWriter = new FileWriter("undelivered_messages.txt", false);
+            undeliveredMessages.remove(username);
+            Gson gson = new Gson();
+            String json = gson.toJson(undeliveredMessages);
+            usersWriter.write(json);
+            usersWriter.close();
+        } catch (IOException e) {
+            System.out.println("IOException");
+            e.printStackTrace();
+        }
+    }
+
+    private void undeliveredMessageContainsKey(String username) {
+        undeliveredMessages.containsKey(username);
+    }
+
+    private List<Message> getUndeliveredMessages(String username) {
+        List<Message> messages;
+        messages = undeliveredMessages.get(username);
+        return messages;
     }
 
     /**
@@ -371,7 +403,8 @@ public class ServerCore {
             //allAccounts.remove(username);
             deleteUser(username);
             // Also clear undelivered messages
-            undeliveredMessages.remove(username);
+            //undeliveredMessages.remove(username);
+            removeUndeliveredMessage(username);
             removeUserConnection(username);
 
             success = true;
@@ -394,15 +427,21 @@ public class ServerCore {
     public GetUndeliveredMessagesReply getUndeliveredMessagesAPI(GetUndeliveredMessagesRequest request) {
         String username = request.getUsername();
         List<Message> messages;
-        if (undeliveredMessages.containsKey(username)) {
+        /*if (undeliveredMessages.containsKey(username)) {
             messages = undeliveredMessages.get(username);
+        } else {
+            messages = new ArrayList<>();
+        }*/
+        if (undeliveredMessageContainsKey(username);) {
+            messages = getUndeliveredMessages(username);
         } else {
             messages = new ArrayList<>();
         }
         Status status = Status.newBuilder().setSuccess(true).setMessage("Retrieving undelivered messages.").build();
 
         // Clear the undelivered messages
-        undeliveredMessages.remove(username);
+        //undeliveredMessages.remove(username);
+        removeUndeliveredMessage(username);
         return GetUndeliveredMessagesReply.newBuilder().setStatus(status).addAllMessages(messages).build();
     }
 
