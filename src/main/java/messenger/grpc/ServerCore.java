@@ -50,7 +50,6 @@ public class ServerCore {
         ipToPorts = new HashMap<>();
 
         // Create the initialization of the all users and undelivered messages files
-
         try {
             File allUsersFile = new File("all_users.txt");
             // Creates file if doesn't exist
@@ -92,6 +91,10 @@ public class ServerCore {
         }
     }
 
+    /**
+     * Method to add a user to the list of all users and update the file storing all users
+     * @param username the username
+     */
     private void addUser(String username) {
         try {
             usersWriter = new FileWriter("all_users.txt", false);
@@ -106,6 +109,10 @@ public class ServerCore {
         }
     }
 
+    /**
+     * Method to delete a user from the list of all users and update the file storing all users
+     * @param username the username
+     */
     private void deleteUser(String username) {
         try {
             usersWriter = new FileWriter("all_users.txt", false);
@@ -120,10 +127,18 @@ public class ServerCore {
         }
     }
 
+    /**
+     * Method to check if a username exists in the list of all accounts
+     * @param username the username
+     */
     private Boolean usernameExists (String username) {
         return allAccounts.contains(username);
     }
 
+    /**
+     * Method to remove a message from the map of all undelivered messages and update the file storing all undelivered messages
+     * @param username the username
+     */
     private void removeUndeliveredMessage(String username) {
         try {
             undeliveredMessagesWriter = new FileWriter("undelivered_messages.txt", false);
@@ -138,16 +153,28 @@ public class ServerCore {
         }
     }
 
+    /**
+     * Method to see if the map of all undelivered messages contains a certain key (which is a username)
+     * @param username the username
+     */
     private Boolean undeliveredMessageContainsKey(String username) {
         return undeliveredMessages.containsKey(username);
     }
 
+    /**
+     * Method to get undelivered messages for a specified username from the map of all undelivered messages
+     * @param username the username
+     */
     private List<Message> getUndeliveredMessages(String username) {
         List<Message> messages;
         messages = undeliveredMessages.get(username);
         return messages;
     }
 
+    /**
+     * Method to add a message to the map of all undelivered messages and update the file storing all undelivered messages
+     * @param message the message
+     */
     private void addUndeliveredMessage(Message message) {
         try {
             addMessageToList(undeliveredMessages, message);
