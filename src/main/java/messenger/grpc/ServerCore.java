@@ -130,8 +130,8 @@ public class ServerCore {
             undeliveredMessages.remove(username);
             Gson gson = new Gson();
             String json = gson.toJson(undeliveredMessages);
-            usersWriter.write(json);
-            usersWriter.close();
+            undeliveredMessagesWriter.write(json);
+            undeliveredMessagesWriter.close();
         } catch (IOException e) {
             System.out.println("IOException");
             e.printStackTrace();
@@ -148,10 +148,24 @@ public class ServerCore {
         return messages;
     }
 
+    private void addUndeliveredMessage(Message message) {
+        try {
+            addMessageToList(undeliveredMessages, message);
+            undeliveredMessagesWriter = new FileWriter("undelivered_messages.txt", false);
+            Gson gson = new Gson();
+            String json = gson.toJson(undeliveredMessages);
+            undeliveredMessagesWriter.write(json);
+            undeliveredMessagesWriter.close();
+        } catch (IOException e) {
+            System.out.println("IOException");
+            e.printStackTrace();
+        }
+    }
+
     private void setPrimary(Boolean isPrimary) {
         this.isPrimary = isPrimary;
     }
-    
+
     public Boolean isPrimary() {
         return isPrimary;
     }
@@ -449,7 +463,8 @@ public class ServerCore {
             status = Status.newBuilder().setSuccess(true).setMessage("Message sent successfully.").build();
         } else {
             // Otherwise add to undelivered messages for future delivery
-            addMessageToList(undeliveredMessages, message);
+            addUndeliveredMessage(message);
+            //addMessageToList(undeliveredMessages, message);
             status = Status.newBuilder().setSuccess(true).setMessage("Message queued for delivery.").build();
         }
         return StatusReply.newBuilder().setStatus(status).build();
