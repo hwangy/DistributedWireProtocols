@@ -138,18 +138,20 @@ public class ServerCore {
         }
     }
 
-    private void undeliveredMessageContainsKey(String username) {
-        undeliveredMessages.containsKey(username);
+    private Boolean undeliveredMessageContainsKey(String username) {
+        return undeliveredMessages.containsKey(username);
     }
 
     private List<Message> getUndeliveredMessages(String username) {
         List<Message> messages;
         messages = undeliveredMessages.get(username);
         return messages;
+    }
 
     private void setPrimary(Boolean isPrimary) {
         this.isPrimary = isPrimary;
     }
+    
     public Boolean isPrimary() {
         return isPrimary;
     }
@@ -415,7 +417,7 @@ public class ServerCore {
         } else {
             messages = new ArrayList<>();
         }*/
-        if (undeliveredMessageContainsKey(username);) {
+        if (undeliveredMessageContainsKey(username)) {
             messages = getUndeliveredMessages(username);
         } else {
             messages = new ArrayList<>();
