@@ -41,31 +41,34 @@ public class ServerCore {
     // Keeps track of whether the current server is the primary
     private Boolean isPrimary = false;
 
-    public ServerCore() {
+    private final int offset;
+
+    public ServerCore(int offset) {
         sentMessages = new HashMap<>();
         queuedMessagesMap = new HashMap<>();
         undeliveredMessages = new HashMap<>();
         loggedInUsers = new HashMap<>();
         allAccounts = new HashSet<>();
         ipToPorts = new HashMap<>();
+        this.offset = offset;
 
         // Create the initialization of the all users and undelivered messages files
         try {
-            File allUsersFile = new File("all_users.txt");
+            File allUsersFile = new File(Constants.getUsersFileName(offset));
             // Creates file if doesn't exist
             allUsersFile.createNewFile();
-            File undeliveredMsgsFile = new File("undelivered_messages.txt");
+            File undeliveredMsgsFile = new File(Constants.getUndeliveredFileName(offset));
             // Creates file if doesn't exist
             undeliveredMsgsFile.createNewFile();
 
-            BufferedReader usersReader = new BufferedReader(new FileReader("all_users.txt"));
-            BufferedReader undeliveredMessagesReader = new BufferedReader(new FileReader("undelivered_messages.txt"));
+            BufferedReader usersReader = new BufferedReader(new FileReader(allUsersFile));
+            BufferedReader undeliveredMessagesReader = new BufferedReader(new FileReader(undeliveredMsgsFile));
             Gson gson = new Gson();
             String userList = usersReader.readLine();
             String undeliveredMsgList = undeliveredMessagesReader.readLine();
 
             if (userList == null) {
-                usersWriter = new FileWriter("all_users.txt", false);
+                usersWriter = new FileWriter(Constants.getUsersFileName(offset), false);
                 String jsonAccts = gson.toJson(allAccounts);
                 usersWriter.write(jsonAccts);
                 usersWriter.close();
@@ -75,13 +78,13 @@ public class ServerCore {
             }
             
             if (undeliveredMsgList == null) {
-                usersWriter = new FileWriter("undelivered_messages.txt", false);
+                usersWriter = new FileWriter(Constants.getUndeliveredFileName(offset), false);
                 String jsonMsgs = gson.toJson(undeliveredMessages);
                 usersWriter.write(jsonMsgs);
                 usersWriter.close();
             } else {
                 // Add existing accounts in all_users to allAccounts (the list of accounts that exist)
-                this.undeliveredMessages.putAll(gson.fromJson(undeliveredMsgList, new TypeToken<HashMap<String, List>>(){}.getType()));
+                this.undeliveredMessages.putAll(gson.fromJson(undeliveredMsgList, new TypeToken<HashMap<String, List<Message>>>(){}.getType()));
             }
             
             
@@ -97,7 +100,7 @@ public class ServerCore {
      */
     private void addUser(String username) {
         try {
-            usersWriter = new FileWriter("all_users.txt", false);
+            usersWriter = new FileWriter(Constants.getUsersFileName(offset), false);
             allAccounts.add(username);
             Gson gson = new Gson();
             String json = gson.toJson(allAccounts);
@@ -115,7 +118,7 @@ public class ServerCore {
      */
     private void deleteUser(String username) {
         try {
-            usersWriter = new FileWriter("all_users.txt", false);
+            usersWriter = new FileWriter(Constants.getUsersFileName(offset), false);
             allAccounts.remove(username);
             Gson gson = new Gson();
             String json = gson.toJson(allAccounts);
@@ -141,7 +144,7 @@ public class ServerCore {
      */
     private void removeUndeliveredMessage(String username) {
         try {
-            undeliveredMessagesWriter = new FileWriter("undelivered_messages.txt", false);
+            undeliveredMessagesWriter = new FileWriter(Constants.getUndeliveredFileName(offset), false);
             undeliveredMessages.remove(username);
             Gson gson = new Gson();
             String json = gson.toJson(undeliveredMessages);
@@ -178,7 +181,7 @@ public class ServerCore {
     private void addUndeliveredMessage(Message message) {
         try {
             addMessageToList(undeliveredMessages, message);
-            undeliveredMessagesWriter = new FileWriter("undelivered_messages.txt", false);
+            undeliveredMessagesWriter = new FileWriter(Constants.getUndeliveredFileName(offset), false);
             Gson gson = new Gson();
             String json = gson.toJson(undeliveredMessages);
             undeliveredMessagesWriter.write(json);

@@ -142,11 +142,12 @@ public class ClientGRPC {
         try {
             response = blockingStub.getUndeliveredMessages(request);
         } catch (StatusRuntimeException e) {
+            e.printStackTrace();
             logger.logInfoWithContext("RPC failed: " + e.getStatus());
             return;
         }
         for (Message message : response.getMessagesList()) {
-            GRPCUtil.printMessage(message);
+            GRPCUtil.printMessage(logger, message);
         }
     }
 

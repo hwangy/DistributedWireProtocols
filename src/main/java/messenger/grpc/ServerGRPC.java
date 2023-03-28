@@ -25,7 +25,7 @@ public class ServerGRPC {
      * @throws IOException  Thrown on network exception
      */
     private void start(int offset) throws IOException {
-        ServerCore core = new ServerCore();
+        ServerCore core = new ServerCore(offset);
         server = Grpc.newServerBuilderForPort(Constants.API_PORT + offset, InsecureServerCredentials.create())
                 .addService(new MessageServerImpl(core))
                 .build()
@@ -135,7 +135,7 @@ public class ServerGRPC {
         public void login(LoginRequest req, StreamObserver<LoginReply> responseObserver) {
             LoginReply reply = core.loginUserAPI(req);
             responseObserver.onNext(reply);
-            if (!req.getIpAddress().isEmpty()) {
+            if (!req.getIpAddress().isEmpty() && reply.getStatus().getSuccess()) {
                 MessageHandler handler = new MessageHandler(core, req.getUsername(),
                         new Address(req.getIpAddress(), reply.getReceiverPort()));
                 new Thread(handler).start();

@@ -15,7 +15,7 @@ public class ServerCoreTest {
 
     @BeforeEach
     public void init() {
-        server = new ServerCore();
+        server = new ServerCore(0);
     }
 
     /**
