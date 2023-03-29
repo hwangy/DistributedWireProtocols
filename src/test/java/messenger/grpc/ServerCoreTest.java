@@ -9,6 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+
+import java.util.*;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
 public class ServerCoreTest {
 
     private ServerCore server;
@@ -255,8 +263,80 @@ public class ServerCoreTest {
         Assertions.assertEquals(1, reply.getMessagesList().size());
 
         // Now that we've gotten the messages, the length should be 0
-        reply =
-                server.getUndeliveredMessagesAPI(TestUtils.testGetUndeliveredMessagesToTestUser());
+        reply = server.getUndeliveredMessagesAPI(TestUtils.testGetUndeliveredMessagesToTestUser());
         Assertions.assertEquals(0, reply.getMessagesList().size());
+    }
+
+    /**
+     * Testing the function for adding a user to the server's set of accounts and to the all_users.txt file
+     */
+    @Test 
+    void testPersistenceAddUser() {
+        try{
+            server.addUser(TestUtils.testUser);
+            BufferedReader usersReader = new BufferedReader(new FileReader(Constants.getUsersFileName(0)));
+            String usersList = usersReader.readLine();
+            Gson gson = new Gson();
+            HashSet<String> usersSet = gson.fromJson(usersList, new TypeToken<HashSet<String>>(){}.getType());
+            Assertions.assertTrue(server.getAccounts().equals(usersSet));
+        } catch (IOException e) {
+            System.out.println("IOException");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Testing the function for deleting a user from the server's set of accounts and to the all_users.txt file
+     */
+    @Test 
+    void testPersistenceDeleteUser() {
+        try{
+            server.deleteUser(TestUtils.testUser);
+            BufferedReader usersReader = new BufferedReader(new FileReader(Constants.getUsersFileName(0)));
+            String usersList = usersReader.readLine();
+            Gson gson = new Gson();
+            HashSet<String> usersSet = gson.fromJson(usersList, new TypeToken<HashSet<String>>(){}.getType());
+            Assertions.assertTrue(server.getAccounts().equals(usersSet));
+        } catch (IOException e) {
+            System.out.println("IOException");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Testing the function for removing an undelivered messages from the server's map of undelivered messages and from the undelivered_messages.txt file
+     */
+    @Test 
+    void testPersistenceRemoveUndeliveredMessage () {
+        try{
+            server.removeUndeliveredMessage(TestUtils.testUser);
+            BufferedReader undeliveredMessagesReader = new BufferedReader(new FileReader(Constants.getUndeliveredFileName(0)));
+            String undeliveredMsgs = undeliveredMessagesReader.readLine();
+            Gson gson = new Gson();
+            HashMap<String, List<Message>> undeliveredMsgsFromJSON = gson.fromJson(undeliveredMsgs, new TypeToken<HashMap<String, List<Message>>>(){}.getType());
+            Assertions.assertTrue(server.getUndeliveredMessagesMap().equals(undeliveredMsgsFromJSON));
+        } catch (IOException e) {
+            System.out.println("IOException");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Testing the function for adding an undelivered messages to the server's map of undelivered messages and to the undelivered_messages.txt file
+     */
+    @Test
+    void testPersistenceAddUndeliveredMessage () {
+        try{
+            Message message = Message.newBuilder().setSender(TestUtils.testUser).setRecipient(TestUtils.testSecondUser).setMessage(TestUtils.testMessage).build();
+            server.addUndeliveredMessage(message);
+            BufferedReader undeliveredMessagesReader = new BufferedReader(new FileReader(Constants.getUndeliveredFileName(0)));
+            String undeliveredMsgs = undeliveredMessagesReader.readLine();
+            Gson gson = new Gson();
+            HashMap<String, List<Message>> undeliveredMsgsFromJSON = gson.fromJson(undeliveredMsgs, new TypeToken<HashMap<String, List<Message>>>(){}.getType());
+            Assertions.assertTrue(server.getUndeliveredMessagesMap().equals(undeliveredMsgsFromJSON));
+        } catch (IOException e) {
+            System.out.println("IOException");
+            e.printStackTrace();
+        }
     }
 }
