@@ -33,6 +33,33 @@ are
 - GetAccounts
 - SendMessage **to logged in user**
 
+## Persistence
+
+We started to think about how to modify our system to incorporate persistence. We made the design decision to incorporate persistence into the list of all users and the map of undelivered messages. We made the design decision to not make the list of logged in users persistent, meaning that if the server crashes then all of the logged-in users are logged out. We believe this is a fair design decision, and it does fit in the specifications.
+
+We will have the server keep track of two files: ``all_users.txt`` and ``undelivered_messages.txt``. These will be created if the don't yet exist. Upon starting up, the server reads these two files and sees if there is content. The server has two data structures ``private final Set<String> allAccounts`` and ``private final Map<String, List<Message>> undeliveredMessages`` that it uses to keep track of and modify the set of all accounts and map of undelivered messages. If there are any changes to either of these two made by the server, the server always updates the two files accordingly. This implementation facilitates the manipulation and use of the set of all accounts and map of undelivered messages, and works well with the way we store these in the files.
+
+The formatting of the files uses JSON and GSON. GSON provides a nice way to convert data structures and classes into JSON strings, which we then write to the file. When either of the files are read, GSON also provides a nice way to convert the file contents back into the data structure or class. Using GSON and JSON is simple and understandable in the code, and ensures that we don't encounter bugs and errors related to how the data is stored in the files.
+
+# March 24
+
+## Persistence
+Today, we worked on writing up the logic involved with starting up the server. In the constructor method for the ServerCore, we have to add the following logic to create the initialization of the all users and undelivered messages files:
+
+Try the following (and catch IOException when relevant):
+- Instantiate the data structures: ``private final Set<String> allAccounts`` and ``private final Map<String, List<Message>> undeliveredMessages``.
+- Create the `all_users.txt` file if it doesn't exist. Create the `undelivered_messages.txt` file if it doesn't exist.
+- Create `BufferedReader` instances for each of the two files `all_users.txt` and `undelivered_messages.txt`.
+- Read the first line of  `all_users.txt` and `undelivered_messages.txt`. These first lines will contain all of the content for each file (since each is just one line long by the design). Call the first line of `all_users.txt`: `String usersList`. Call the first line of `undelivered_messages.txt`: `String undeliveredMsgList`.
+- If `userList` is null, then convert `allAccounts` to JSON using GSON and write this to `all_users.txt`. Else, add the existing accounts in `all_users.txt` to `allAccounts` by reading from `all_users.txt` and using GSON to convert this back into a `HashSet<String>`. Add all elements of this HashSet to `allAccounts`.
+- Do the exact same thing as in the previous step but with `undeliveredMessages` and `undelivered_messages.txt`. Here, convert the contents of the text file back into a `HashMap<String, List<Message>>` and put all elements of this HashMap in `undeliveredMessages`.
+
+
+# March 25
+
+## Persistence
+We implemented the methods for adding and deleting users and adding and deleting undelivered messages. For both of these, in the code we add/delete from `allAccounts` or `undeliveredMessages` correspondingly. We then overwrite the corresponding text files with the updated version of the data structure.
+
 # March 26
 >**Decision**
 >Rather than the servers forwarding request to other servers, the client will be tasked with
