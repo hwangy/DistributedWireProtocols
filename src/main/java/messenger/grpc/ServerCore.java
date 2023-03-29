@@ -98,7 +98,7 @@ public class ServerCore {
      * Method to add a user to the list of all users and update the file storing all users
      * @param username the username
      */
-    private void addUser(String username) {
+    public void addUser(String username) {
         try {
             usersWriter = new FileWriter(Constants.getUsersFileName(offset), false);
             allAccounts.add(username);
@@ -116,7 +116,7 @@ public class ServerCore {
      * Method to delete a user from the list of all users and update the file storing all users
      * @param username the username
      */
-    private void deleteUser(String username) {
+    public void deleteUser(String username) {
         try {
             usersWriter = new FileWriter(Constants.getUsersFileName(offset), false);
             allAccounts.remove(username);
@@ -134,7 +134,7 @@ public class ServerCore {
      * Method to check if a username exists in the list of all accounts
      * @param username the username
      */
-    private Boolean usernameExists (String username) {
+    public Boolean usernameExists (String username) {
         return allAccounts.contains(username);
     }
 
@@ -142,7 +142,7 @@ public class ServerCore {
      * Method to remove a message from the map of all undelivered messages and update the file storing all undelivered messages
      * @param username the username
      */
-    private void removeUndeliveredMessage(String username) {
+    public void removeUndeliveredMessage(String username) {
         try {
             undeliveredMessagesWriter = new FileWriter(Constants.getUndeliveredFileName(offset), false);
             undeliveredMessages.remove(username);
@@ -160,7 +160,7 @@ public class ServerCore {
      * Method to see if the map of all undelivered messages contains a certain key (which is a username)
      * @param username the username
      */
-    private Boolean undeliveredMessageContainsKey(String username) {
+    public Boolean undeliveredMessageContainsKey(String username) {
         return undeliveredMessages.containsKey(username);
     }
 
@@ -168,17 +168,24 @@ public class ServerCore {
      * Method to get undelivered messages for a specified username from the map of all undelivered messages
      * @param username the username
      */
-    private List<Message> getUndeliveredMessages(String username) {
+    public List<Message> getUndeliveredMessages(String username) {
         List<Message> messages;
         messages = undeliveredMessages.get(username);
         return messages;
     }
 
     /**
+     * Method to get the undelivered messages map
+     */
+    public Map<String, List<Message>> getUndeliveredMessagesMap() {
+        return undeliveredMessages;
+    }
+
+    /**
      * Method to add a message to the map of all undelivered messages and update the file storing all undelivered messages
      * @param message the message
      */
-    private void addUndeliveredMessage(Message message) {
+    public void addUndeliveredMessage(Message message) {
         try {
             addMessageToList(undeliveredMessages, message);
             undeliveredMessagesWriter = new FileWriter(Constants.getUndeliveredFileName(offset), false);
