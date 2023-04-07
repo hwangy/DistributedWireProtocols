@@ -60,12 +60,22 @@ MessageReceiver service on which to receive incoming messages.
    
 ## An Example Scenario to Test
 
-Below we describe an example scenario you may want to try out to test our system.
+Below we describe an example scenario you may want to try out to test our system. This will involve 
+two people, on devices called Device 1 and Device 2.
 
-1. Log in a user Alice.
-2. On a different window or device, log in a user Bob.
-3. Send the message "Hello" from Alice to Bob. (This should output "Hello" on Bob's side.)
-4. Log out Bob.
-5. Send a message "How are you" from Alice to Bob.
-6. Log in Bob.
-7. Deliver undelivered messages to Bob. (This should output "How are you" on Bob's side.)
+1. Create 3 server instances, two on the Device 1 and the third on Device 2. The primary server instance should be on Device 1.
+2. Create 2 client instances, one on each device.
+3. Log in a user Alice on Device 1.
+4. Log in a user Bob on Device 2.
+5. Send the message "Hello" from Alice to Bob. (This should output "Hello" on Bob's side.)
+6. Log out Bob.
+7. Send the message "Hi again" from Alice to Bob. (This message will be added to the persistent list of undelivered messages.)
+8. Control-C on the primary server instance on Device 1.
+9. Observe that the primary server role is granted to a different server instance.
+10. Reconnect the server that was disconnected.
+11. Reconnect the client instances on each device as promted on the terminal screen.
+12. Log in the user Alice on Device 1. Observe that because the username Alice was created already and added to the persistent list of accounts, you need to utilize the "log into an existing account" option, which will successfully log in the user Alice.
+13. Log in the user Bob on Device 2.
+14. Call the "get undelivered messages" feature on Bob's account on Device 2. Observe that the message "Hi again" is sent from Alice to Bob.
+
+This scenario demonstrates both persistence and 2-fault tolerance.
