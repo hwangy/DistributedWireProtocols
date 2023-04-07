@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,9 +20,14 @@ public class ServerCoreTest {
 
     private ServerCore server;
 
+    private LoginReply createAndLogInUser(String user, String ipAddress) {
+        server.createAccountAPI(TestUtils.testCreateUserRequest(user, ipAddress));
+        return server.loginUserAPI(TestUtils.testLoginRequest(user, ipAddress));
+    }
+
     @BeforeEach
     public void init() {
-        server = new ServerCore(0);
+        server = new ServerCore();
     }
 
     /**
@@ -31,7 +35,7 @@ public class ServerCoreTest {
      */
     @Test
     void testCreateUser() {
-        server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser));
+        createAndLogInUser(TestUtils.testUser,"");
 
         Assertions.assertTrue(server.getAccounts().contains(TestUtils.testUser));
         Assertions.assertTrue(server.getAccounts().size() == 1);
@@ -136,7 +140,7 @@ public class ServerCoreTest {
      */
     @Test
     void testSendMessageLoggedIn() {
-        server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser));
+        createAndLogInUser(TestUtils.testUser, "");
         server.sendMessageAPI(TestUtils.testSendToTestUser());
 
         Optional<List<Message>> messageList = server.getQueuedMessages(TestUtils.testUser);
@@ -152,7 +156,7 @@ public class ServerCoreTest {
     void testLogoutUser() {
         // User should start logged off.
         Assertions.assertFalse(server.isLoggedIn(TestUtils.testUser));
-        server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser));
+        createAndLogInUser(TestUtils.testUser, "");
         // And now they should be logged in.
         Assertions.assertTrue(server.isLoggedIn(TestUtils.testUser));
 
@@ -179,8 +183,8 @@ public class ServerCoreTest {
      */
     void testCreateAccountSameIPAddress() {
         // Add two users on the same IP address
-        LoginReply response = server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser, TestUtils.testIpAddress));
-        LoginReply secondResponse =  server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testSecondUser, TestUtils.testIpAddress));
+        LoginReply response = createAndLogInUser(TestUtils.testUser, TestUtils.testIpAddress);
+        LoginReply secondResponse = createAndLogInUser(TestUtils.testSecondUser, TestUtils.testIpAddress);
 
         // For two users on the same IP adress, want the message sender to assign distinct ports
         Assertions.assertTrue(response.getReceiverPort() == Constants.MESSAGE_PORT);
@@ -189,13 +193,13 @@ public class ServerCoreTest {
         // Delete the second user
         server.deleteAccountAPI(TestUtils.testDeleteUserRequest(TestUtils.testSecondUser));
         // Recreate the second user
-        secondResponse = server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testSecondUser, TestUtils.testIpAddress));
+        secondResponse = createAndLogInUser(TestUtils.testSecondUser, TestUtils.testIpAddress);
         // Test that the second user gets port Constants.MESSAGE_PORT + 1 again
         Assertions.assertTrue(secondResponse.getReceiverPort() == Constants.MESSAGE_PORT + 1);
         // Delete the first user
         server.deleteAccountAPI(TestUtils.testDeleteUserRequest(TestUtils.testUser));
         // Recreate the first user
-        response = server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser, TestUtils.testIpAddress));
+        response = createAndLogInUser(TestUtils.testUser, TestUtils.testIpAddress);
         // Test that the first user gets port Constants.MESSAGE_PORT again
         Assertions.assertTrue(response.getReceiverPort() == Constants.MESSAGE_PORT);
 
@@ -207,8 +211,10 @@ public class ServerCoreTest {
      */
     void testCreateAccountDifferentIPAddress() {
         // Add two users on different IP address
-        LoginReply response = server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser, TestUtils.testIpAddress));
-        LoginReply secondResponse = server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testSecondUser, TestUtils.testSecondIpAddress));
+        server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser, TestUtils.testIpAddress));
+        LoginReply response = server.loginUserAPI(TestUtils.testLoginRequest(TestUtils.testUser, TestUtils.testIpAddress));
+        server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testSecondUser, TestUtils.testSecondIpAddress));
+        LoginReply secondResponse = server.loginUserAPI(TestUtils.testLoginRequest(TestUtils.testSecondUser, TestUtils.testSecondIpAddress));
         // For two users on the same IP adress, want the message sender to assign the same port
         Assertions.assertTrue(response.getReceiverPort() == Constants.MESSAGE_PORT);
         Assertions.assertTrue(secondResponse.getReceiverPort() == Constants.MESSAGE_PORT);
@@ -227,8 +233,8 @@ public class ServerCoreTest {
      */
     void testCreateThreeAccountsIPAddress () {
         // Login two users on same IP address
-        LoginReply response = server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testUser, TestUtils.testIpAddress));
-        LoginReply secondResponse = server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testSecondUser, TestUtils.testIpAddress));
+        LoginReply response = createAndLogInUser(TestUtils.testUser, TestUtils.testIpAddress);
+        LoginReply secondResponse = createAndLogInUser(TestUtils.testSecondUser, TestUtils.testIpAddress);
         Assertions.assertTrue(response.getReceiverPort() == Constants.MESSAGE_PORT);
         Assertions.assertTrue(secondResponse.getReceiverPort() == Constants.MESSAGE_PORT + 1);
 
@@ -236,13 +242,13 @@ public class ServerCoreTest {
         server.logoutUserAPI(TestUtils.testLogoutTestUser(TestUtils.testUser));
 
         // User 3 creates account on same IP
-        LoginReply thirdResponse = server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testThirdUser, TestUtils.testIpAddress));
+        LoginReply thirdResponse = createAndLogInUser(TestUtils.testThirdUser, TestUtils.testIpAddress);
 
         // User 3 should get the same port number as user 1 initially did
         Assertions.assertTrue(thirdResponse.getReceiverPort() == Constants.MESSAGE_PORT);
 
         // User 4 creates account on same IP
-        LoginReply fourthResponse = server.createAccountAPI(TestUtils.testCreateUserRequest(TestUtils.testFourthUser, TestUtils.testIpAddress));
+        LoginReply fourthResponse = createAndLogInUser(TestUtils.testFourthUser, TestUtils.testIpAddress);
 
         // User 4 should get port Constants.MESSAGE_PORT + 2
         Assertions.assertTrue(fourthResponse.getReceiverPort() == Constants.MESSAGE_PORT + 2);
