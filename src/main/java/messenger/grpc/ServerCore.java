@@ -43,6 +43,16 @@ public class ServerCore {
 
     private final int offset;
 
+    public ServerCore() {
+        sentMessages = new HashMap<>();
+        queuedMessagesMap = new HashMap<>();
+        undeliveredMessages = new HashMap<>();
+        loggedInUsers = new HashMap<>();
+        allAccounts = new HashSet<>();
+        ipToPorts = new HashMap<>();
+        this.offset = 0;
+    }
+
     public ServerCore(int offset) {
         sentMessages = new HashMap<>();
         queuedMessagesMap = new HashMap<>();

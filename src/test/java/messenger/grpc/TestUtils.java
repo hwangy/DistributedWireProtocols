@@ -25,7 +25,6 @@ public class TestUtils {
      */
     public static CreateAccountRequest testCreateUserRequest(String username) {
         return CreateAccountRequest.newBuilder()
-                .setIpAddress(testIpAddress)
                 .setUsername(username).build();
     }
 
@@ -37,7 +36,6 @@ public class TestUtils {
      */
     public static CreateAccountRequest testCreateUserRequest(String username, String ipAddress) {
         return CreateAccountRequest.newBuilder()
-                .setIpAddress(ipAddress)
                 .setUsername(username).build();
     }
 
