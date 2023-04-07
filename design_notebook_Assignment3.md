@@ -1,3 +1,21 @@
+## Implementation Notes
+### Challenges
+- Previously, our implementation was agnostic of the status of the servers (e.g., the clients
+   had no way of knowing whether the server was still available). As such, we had to implement
+   a separate thread to check the server's status. Interestingly, GRPC connections are only 
+   set to `READY` once *some* RPC call has been made. This required us to implement a handshake
+   RPC call to initiate the connection.
+- Other important decisions were
+   - Where fault tolerance should be handled (client or server?).  
+   - How to handle primary vs. back up servers
+- On the persistence side, one challenge was deciding how to persist the server's status. Initially
+   the persistence required a good deal of custom code, but the Gson package made this process a lot
+   easier, and it also handled the conversion back from text to Java objects very well.
+
+### Performance
+Overall, the performance seems to be comparable, except that up to three messages will need to be
+sent for every one message sent previously.
+
 # March 22
 
 ## 2-Fault Tolerance
