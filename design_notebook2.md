@@ -27,6 +27,11 @@ failure. Now, the first that happens after a server IP is entered, is that the u
 to login or create an account. Afterwards, the grpc connection is established, and a disconnect
 can be detected by checking the channel's status is not `READY`.
 
+>**Update**
+> Rather than the `CREATE_USER` request being used to signal a connection, we've implemented a 
+> separate `HandshakeRequest` which establishes the connection and allows the heartbeat checks
+> to return the correct value.
+
 To implement redundancy, the primary server (which is the server initialized with offset 0)
 forwards *state altering* requests it receives to the other servers. Non-state altering requests
 are
