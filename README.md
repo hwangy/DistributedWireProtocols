@@ -1,5 +1,5 @@
 # DistributedWireProtocols
-Project 1 for Distributed Systems
+Project 3 (formerly Project 1) for Distributed Systems
 
 ## How To Run
 
